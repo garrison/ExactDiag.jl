@@ -9,16 +9,16 @@ function apply_my_disordered_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer
     @assert length(h_z) == length(hs.lattice)
 
     for x1 in 1:length(hs.lattice)
-        apply_Sz(hs, x1, j) do i, v
+        apply_Sz(hs, j, x1) do i, v
             f(i, h_z[x1] * v)
         end
     end
 
     neighbors(hs.lattice) do x1, x2, η_wrap
-        apply_SxSx_SySy(hs, x1, x2, j) do i, v
+        apply_SxSx_SySy(hs, j, x1, x2) do i, v
             f(i, v)
         end
-        apply_SzSz(hs, x1, x2, j) do i, v
+        apply_SzSz(hs, j, x1, x2) do i, v
             f(i, v)
         end
     end
@@ -61,7 +61,7 @@ function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)
     for x1 in 1:length(lattice)
         vec = zeros(evec)
         for (j, state) in enumerate(hs.indexer)
-            apply_Sz(hs, x1, j) do i, v
+            apply_Sz(hs, j, x1) do i, v
                 vec[i] += v * evec[j]
             end
         end

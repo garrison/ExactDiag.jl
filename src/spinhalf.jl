@@ -11,7 +11,7 @@ end
 
 get_σz(site_state::Integer) = (site_state << 1) - 1
 
-function apply_σx(f, hs::SpinHalfHilbertSpace, x1, j)
+function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = copy(hs.indexer[j])
     state[x1] $= 1
     i = findfirst!(hs.indexer, state)
@@ -19,7 +19,7 @@ function apply_σx(f, hs::SpinHalfHilbertSpace, x1, j)
     nothing
 end
 
-function apply_σy(f, hs::SpinHalfHilbertSpace, x1, j)
+function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = copy(hs.indexer[j])
     state[x1] $= 1
     i = findfirst!(hs.indexer, state)
@@ -27,13 +27,13 @@ function apply_σy(f, hs::SpinHalfHilbertSpace, x1, j)
     nothing
 end
 
-function apply_σz(f, hs::SpinHalfHilbertSpace, x1, j)
+function apply_σz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = hs.indexer[j]
     f(j, get_σz(state[x1]))
     nothing
 end
 
-function apply_σxσx(f, hs::SpinHalfHilbertSpace, x1, x2, j)
+function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
     if x1 == x2
         f(j, 1)
     else
@@ -46,14 +46,14 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, x1, x2, j)
     nothing
 end
 
-function apply_σzσz(f, hs::SpinHalfHilbertSpace, x1, x2, j)
+function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
     state = hs.indexer[j]
     f(j, get_σz(state[x1]) * get_σz(state[x2]))
     nothing
 end
 
 # FIXME: check this!
-function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, x1, x2, j)
+function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
     if x1 == x2
         f(j, 2)
     else
@@ -70,43 +70,43 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, x1, x2, j)
 end
 apply_σxσx_σyσy() = nothing
 
-function apply_Sx(f, hs::SpinHalfHilbertSpace, x1, j)
-    apply_σx(hs, x1, j) do i, v
+function apply_Sx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
+    apply_σx(hs, j, x1) do i, v
         f(i, v / 2)
     end
     nothing
 end
 
-function apply_Sy(f, hs::SpinHalfHilbertSpace, x1, j)
-    apply_σy(hs, x1, j) do i, v
+function apply_Sy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
+    apply_σy(hs, j, x1) do i, v
         f(i, v / 2)
     end
     nothing
 end
 
-function apply_Sz(f, hs::SpinHalfHilbertSpace, x1, j)
-    apply_σz(hs, x1, j) do i, v
+function apply_Sz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
+    apply_σz(hs, j, x1) do i, v
         f(i, v / 2)
     end
     nothing
 end
 
-function apply_SxSx(f, hs::SpinHalfHilbertSpace, x1, x2, j)
-    apply_σxσx(hs, x1, x2, j) do i, v
+function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+    apply_σxσx(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
 end
 
-function apply_SzSz(f, hs::SpinHalfHilbertSpace, x1, x2, j)
-    apply_σzσz(hs, x1, x2, j) do i, v
+function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+    apply_σzσz(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
 end
 
-function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, x1, x2, j)
-    apply_σxσx_σyσy(hs, x1, x2, j) do i, v
+function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+    apply_σxσx_σyσy(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
@@ -122,23 +122,23 @@ immutable SpinHalfHamiltonian
     SpinHalfHamiltonian(; h_x::Real=0.0, h_y::Real=0.0, h_z::Real=0.0, J1_xy::Real=0.0, J1_z::Real=0.0) = new(h_x, h_y, h_z, J1_xy, J1_z)
 end
 
-function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, ham::SpinHalfHamiltonian, j::Integer)
+function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer, ham::SpinHalfHamiltonian)
     # NOTE: When modifying, we sure to modify this outer conditional
     # as well!
     if ham.h_x != 0 || ham.h_y != 0 || ham.h_z != 0
         for x1 in 1:length(hs.lattice)
             if ham.h_x != 0
-                apply_Sx(hs, x1, j) do i, v
+                apply_Sx(hs, j, x1) do i, v
                     f(i, ham.h_x * v)
                 end
             end
             if ham.h_y != 0
-                apply_Sx(hs, x1, j) do i, v
+                apply_Sx(hs, j, x1) do i, v
                     f(i, ham.h_y * v)
                 end
             end
             if ham.h_z != 0
-                apply_Sx(hs, x1, j) do i, v
+                apply_Sx(hs, j, x1) do i, v
                     f(i, ham.h_z * v)
                 end
             end
@@ -150,12 +150,12 @@ function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, ham::SpinHalfHamiltonian
     if ham.J1_xy != 0 || ham.J1_z != 0
         neighbors(hs.lattice) do x1, x2, η_wrap
             if ham.J1_xy != 0
-                apply_SxSx_SySy(hs, x1, x2, j) do i, v
+                apply_SxSx_SySy(hs, j, x1, x2) do i, v
                     f(i, ham.J1_xy * v)
                 end
             end
             if ham.J1_z != 0
-                apply_SzSz(hs, x1, x2, j) do i, v
+                apply_SzSz(hs, j, x1, x2) do i, v
                     f(i, ham.J1_z * v)
                 end
             end

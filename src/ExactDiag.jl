@@ -4,6 +4,7 @@ VERSION < v"0.4-" && using Docile
 
 using Bravais
 using IndexedArrays
+using Compat
 
 abstract HilbertSpace
 

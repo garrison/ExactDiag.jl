@@ -1,6 +1,7 @@
 using IndexedArrays
 using Bravais
 using ExactDiag
+using Compat
 using Base.Test
 
 function apply_my_disordered_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer)
@@ -13,7 +14,7 @@ function apply_my_disordered_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer
         end
     end
 
-    neighbors(hs.lattice, :nearest) do x1, x2, η_wrap
+    neighbors(hs.lattice) do x1, x2, η_wrap
         apply_SxSx_SySy(hs, x1, x2, j) do i, v
             f(i, v)
         end
@@ -70,9 +71,9 @@ function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)
 end
 
 pbc_Sz = [0.251970534661742, -0.014905816107976, 0.0138790327761257, -0.274704496076216, 0.016042987433838, 0.067019907241627, 0.107468173924465, -0.231028029504729, 0.25946797753064, -0.236502949591289, 0.0575550494278513, -0.0162623717160799]
-test_disordered_hamiltonian(HypercubicLattice([12]), -5.75814398110789, pbc_Sz)
+test_disordered_hamiltonian(ChainLattice([12]), -5.75814398110789, pbc_Sz)
 
 obc_Sz = [0.380927022651224, -0.136056762511492, 0.118088125191709, -0.324427554030101, -0.0293082646011701, 0.080280872605819, 0.107382672186401, -0.196379958994102, 0.189553312888283, -0.203159954875788, -0.190071091118365, 0.203171580607582]
-test_disordered_hamiltonian(HypercubicLattice([12], diagm([0])), -5.63552961749324, obc_Sz)
+test_disordered_hamiltonian(ChainLattice([12], diagm([0])), -5.63552961749324, obc_Sz)
 
 # FIXME: Also test SzSz and S+S- correlators (see https://github.com/simple-dmrg/sophisticated-dmrg/blob/master/test_disordered_heisenberg.py)

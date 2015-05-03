@@ -148,7 +148,7 @@ function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, ham::SpinHalfHamiltonian
     # NOTE: When modifying, we sure to modify this outer conditional
     # as well!
     if ham.J1_xy != 0 || ham.J1_z != 0
-        neighbors(hs.lattice, :nearest) do x1, x2, η_wrap
+        neighbors(hs.lattice) do x1, x2, η_wrap
             if ham.J1_xy != 0
                 apply_SxSx_SySy(hs, x1, x2, j) do i, v
                     f(i, ham.J1_xy * v)

@@ -125,38 +125,18 @@ function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer, ham::SpinHal
     # as well!
     if ham.h_x != 0 || ham.h_y != 0 || ham.h_z != 0
         for x1 in 1:length(hs.lattice)
-            if ham.h_x != 0
-                apply_Sx(hs, j, x1) do i, v
-                    f(i, ham.h_x * v)
-                end
-            end
-            if ham.h_y != 0
-                apply_Sx(hs, j, x1) do i, v
-                    f(i, ham.h_y * v)
-                end
-            end
-            if ham.h_z != 0
-                apply_Sx(hs, j, x1) do i, v
-                    f(i, ham.h_z * v)
-                end
-            end
+            ham.h_x != 0 && apply_Sx(edapply(f, ham.h_x), hs, j, x1)
+            ham.h_y != 0 && apply_Sy(edapply(f, ham.h_y), hs, j, x1)
+            ham.h_z != 0 && apply_Sz(edapply(f, ham.h_z), hs, j, x1)
         end
     end
 
     # NOTE: When modifying, we sure to modify this outer conditional
     # as well!
     if ham.J1_xy != 0 || ham.J1_z != 0
-        neighborsη(hs.lattice) do x1, x2, η
-            if ham.J1_xy != 0
-                apply_SxSx_SySy(hs, j, x1, x2) do i, v
-                    f(i, ham.J1_xy * v)
-                end
-            end
-            if ham.J1_z != 0
-                apply_SzSz(hs, j, x1, x2) do i, v
-                    f(i, ham.J1_z * v)
-                end
-            end
+        neighbors(hs.lattice) do x1, x2, wrap
+            ham.J1_xy != 0 && apply_SxSx_SySy(edapply(f, ham.J1_xy), hs, j, x1, x2)
+            ham.J1_z != 0 && apply_SzSz(edapply(f, ham.J1_z), hs, j, x1, x2)
         end
     end
 

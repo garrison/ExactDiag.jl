@@ -31,7 +31,7 @@ function apply_σz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     nothing
 end
 
-function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
+function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     if x1 == x2
         f(j, 1)
     else
@@ -44,14 +44,14 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
     nothing
 end
 
-function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
+function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     state = hs.indexer[j]
     f(j, get_σz(state[x1]) * get_σz(state[x2]))
     nothing
 end
 
 # FIXME: check this!
-function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
+function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     if x1 == x2
         f(j, 2)
     else
@@ -89,21 +89,21 @@ function apply_Sz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     nothing
 end
 
-function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
+function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     apply_σxσx(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
 end
 
-function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
+function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     apply_σzσz(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
 end
 
-function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
+function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     apply_σxσx_σyσy(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
@@ -146,7 +146,7 @@ function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer, ham::SpinHal
     # NOTE: When modifying, we sure to modify this outer conditional
     # as well!
     if ham.J1_xy != 0 || ham.J1_z != 0
-        neighbors(hs.lattice) do x1, x2, η_wrap
+        neighborsη(hs.lattice) do x1, x2, η
             if ham.J1_xy != 0
                 apply_SxSx_SySy(hs, j, x1, x2) do i, v
                     f(i, ham.J1_xy * v)

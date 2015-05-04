@@ -4,4 +4,4 @@ using ExactDiag
 using Compat
 using Base.Test
 
-include("spin_half_disorder.jl")
+include("spin_half.jl")

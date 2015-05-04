@@ -1,3 +1,11 @@
+let
+    indexer = IndexedArray{Vector{Int}}(Vector{Int}[[1],[0]])
+    hs = SpinHalfHilbertSpace(ChainLattice([1]), indexer)
+    @test full(operator_matrix(hs, apply_σx, 1)) == [0 1; 1 0]
+    @test full(operator_matrix(hs, apply_σy, 1)) == [0 -im; im 0]
+    @test full(operator_matrix(hs, apply_σz, 1)) == [1 0; 0 -1]
+end
+
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)
     h_z = [-0.9994218963834927, -0.49906680067568954, 0.3714572638372098, 0.9629810631305735, 0.19369581339829733, -0.7411831242535816, -0.061683656841222456, 0.30784629029574884, -0.42077926330644844, 0.25473615736727395, 0.12683294253359123, -0.6640580830314939]
     apply_hamiltonian = spin_half_hamiltonian(J1=1, h_z=h_z)

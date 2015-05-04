@@ -8,22 +8,20 @@ function disordered_hamiltonian{T<:Real}(h_z::Vector{T})
     h_z = copy(h_z)
     len = length(h_z)
 
-    function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer)
+    return function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer)
         @assert length(hs.lattice) == len
 
         for x1 in 1:length(hs.lattice)
             apply_Sz(edapply(f, h_z[x1]), hs, j, x1)
         end
 
-        neighbors(hs.lattice) do a...
+        neighborsη(hs.lattice) do a...
             apply_SxSx_SySy(edapply(f), hs, j, a...)
             apply_SzSz(edapply(f), hs, j, a...)
         end
 
         nothing
     end
-
-    apply_hamiltonian
 end
 
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)

@@ -1,9 +1,22 @@
 let
     indexer = IndexedArray{Vector{Int}}(Vector{Int}[[1],[0]])
     hs = SpinHalfHilbertSpace(ChainLattice([1]), indexer)
-    @test full(operator_matrix(hs, apply_σx, 1)) == [0 1; 1 0]
-    @test full(operator_matrix(hs, apply_σy, 1)) == [0 -im; im 0]
-    @test full(operator_matrix(hs, apply_σz, 1)) == [1 0; 0 -1]
+    @test operator_matrix(hs, apply_σx, 1) == [0 1; 1 0]
+    @test operator_matrix(hs, apply_σy, 1) == [0 -im; im 0]
+    @test operator_matrix(hs, apply_σz, 1) == [1 0; 0 -1]
+end
+
+let
+    indexer = IndexedArray{Vector{Int}}(Vector{Int}[[1,1],[0,1],[1,0],[0,0]])
+    hs = SpinHalfHilbertSpace(ChainLattice([2]), indexer)
+
+    @test operator_matrix(hs, apply_σx, 1) * operator_matrix(hs, apply_σx, 2) + operator_matrix(hs, apply_σy, 1) * operator_matrix(hs, apply_σy, 2) == sparse([3,2],[2,3],[2,2], 4, 4)
+    @test operator_matrix(hs, apply_σxσx_σyσy, 1, 2) == sparse([3,2],[2,3],[2,2], 4, 4)
+    @test operator_matrix(hs, apply_σxσx_σyσy, 1, 1) == spdiagm([2,2,2,2])
+
+    @test operator_matrix(hs, apply_σzσz, 1, 1) == spdiagm([1, 1, 1, 1])
+    @test operator_matrix(hs, apply_σzσz, 1, 2) == spdiagm([1, -1, -1, 1])
+    @test operator_matrix(hs, apply_σz, 1) * operator_matrix(hs, apply_σz, 2) == spdiagm([1, -1, -1, 1])
 end
 
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)

@@ -50,7 +50,6 @@ function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
     nothing
 end
 
-# FIXME: check this!
 function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     if x1 == x2
         f(j, 2)

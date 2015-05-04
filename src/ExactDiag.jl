@@ -16,7 +16,7 @@ edapply(f) = f
 getval(v::Real, i::Integer) = v
 getval{T<:Real}(v::Vector{T}, i::Integer) = v[i]
 
-function operator_matrix(hs::HilbertSpace, apply_operator)
+function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     length(hs.indexer) > 0 || throw(ArgumentError("Indexer must contain at least one (seed) state."))
 
     rows = Int[]
@@ -30,7 +30,7 @@ function operator_matrix(hs::HilbertSpace, apply_operator)
 
     j = 1
     while j <= length(hs.indexer)
-        apply_operator(hs, j) do i, v
+        apply_operator(hs, j, args...) do i, v
             push!(rows, i)
             push!(cols, j)
             push!(vals, v)

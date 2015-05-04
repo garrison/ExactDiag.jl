@@ -9,18 +9,12 @@ function apply_my_disordered_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer
     @assert length(h_z) == length(hs.lattice)
 
     for x1 in 1:length(hs.lattice)
-        apply_Sz(hs, j, x1) do i, v
-            f(i, h_z[x1] * v)
-        end
+        apply_Sz(edapply(f, h_z[x1]), hs, j, x1)
     end
 
-    neighbors(hs.lattice) do x1, x2, η_wrap
-        apply_SxSx_SySy(hs, j, x1, x2) do i, v
-            f(i, v)
-        end
-        apply_SzSz(hs, j, x1, x2) do i, v
-            f(i, v)
-        end
+    neighbors(hs.lattice) do a...
+        apply_SxSx_SySy(edapply(f), hs, j, a...)
+        apply_SzSz(edapply(f), hs, j, a...)
     end
 
     nothing

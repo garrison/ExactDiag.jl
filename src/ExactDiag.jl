@@ -12,6 +12,9 @@ abstract HilbertSpace
 
 include("spinhalf.jl")
 
+edapply(f, x::Real) = (i, v) -> f(i, x * v)
+edapply(f) = f
+
 export SpinHalfHilbertSpace,
     SpinHalfHamiltonian,
     seed_state!,
@@ -28,6 +31,7 @@ export SpinHalfHilbertSpace,
     apply_Sz,
     apply_SxSx,
     apply_SzSz,
-    apply_SxSx_SySy
+    apply_SxSx_SySy,
+    edapply
 
 end # module

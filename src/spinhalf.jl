@@ -1,5 +1,3 @@
-# FIXME: find a way to work with disorder, e.g. in h_z
-
 immutable SpinHalfHilbertSpace <: HilbertSpace
     lattice::AbstractLattice  # or we could get rid of this; or just say how many sites
     indexer
@@ -33,7 +31,7 @@ function apply_σz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     nothing
 end
 
-function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
     if x1 == x2
         f(j, 1)
     else
@@ -46,14 +44,14 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
     nothing
 end
 
-function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
     state = hs.indexer[j]
     f(j, get_σz(state[x1]) * get_σz(state[x2]))
     nothing
 end
 
 # FIXME: check this!
-function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
     if x1 == x2
         f(j, 2)
     else
@@ -91,21 +89,21 @@ function apply_Sz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     nothing
 end
 
-function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
     apply_σxσx(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
 end
 
-function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
     apply_σzσz(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end
     nothing
 end
 
-function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer)
+function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η_wrap=Rational{Int}(0))
     apply_σxσx_σyσy(hs, j, x1, x2) do i, v
         f(i, v / 4)
     end

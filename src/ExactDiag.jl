@@ -10,10 +10,11 @@ abstract HilbertSpace
 
 # FIXME: work with BitVector
 
-include("spinhalf.jl")
-
 edapply(f, x::Real) = (i, v) -> f(i, x * v)
 edapply(f) = f
+
+getval(v::Real, i::Integer) = v
+getval{T<:Real}(v::Vector{T}, i::Integer) = v[i]
 
 function operator_matrix(hs::HilbertSpace, apply_operator)
     length(hs.indexer) > 0 || throw(ArgumentError("Indexer must contain at least one (seed) state."))
@@ -40,11 +41,16 @@ function operator_matrix(hs::HilbertSpace, apply_operator)
     return sparse(rows, cols, vals, length(hs.indexer), length(hs.indexer))
 end
 
-export SpinHalfHilbertSpace,
-    SpinHalfHamiltonian,
+include("spinhalf.jl")
+
+export
+    edapply,
+    getval,
+    operator_matrix,
     seed_state!,
-    apply_hamiltonian,
     apply_translation,
+    SpinHalfHilbertSpace,
+    spin_half_hamiltonian,
     apply_σx,
     apply_σy,
     apply_σz,
@@ -56,8 +62,7 @@ export SpinHalfHilbertSpace,
     apply_Sz,
     apply_SxSx,
     apply_SzSz,
-    apply_SxSx_SySy,
-    edapply,
-    operator_matrix
+    apply_SxSx_SySy
+
 
 end # module

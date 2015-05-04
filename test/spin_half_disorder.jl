@@ -1,26 +1,6 @@
-function disordered_hamiltonian{T<:Real}(h_z::Vector{T})
-    h_z = copy(h_z)
-    len = length(h_z)
-
-    return function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer)
-        @assert length(hs.lattice) == len
-
-        for x1 in 1:length(hs.lattice)
-            apply_Sz(edapply(f, h_z[x1]), hs, j, x1)
-        end
-
-        neighborsη(hs.lattice) do a...
-            apply_SxSx_SySy(edapply(f), hs, j, a...)
-            apply_SzSz(edapply(f), hs, j, a...)
-        end
-
-        nothing
-    end
-end
-
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)
     h_z = [-0.9994218963834927, -0.49906680067568954, 0.3714572638372098, 0.9629810631305735, 0.19369581339829733, -0.7411831242535816, -0.061683656841222456, 0.30784629029574884, -0.42077926330644844, 0.25473615736727395, 0.12683294253359123, -0.6640580830314939]
-    apply_hamiltonian = disordered_hamiltonian(h_z)
+    apply_hamiltonian = spin_half_hamiltonian(J1=1, h_z=h_z)
     indexer = IndexedArray{Vector{Int}}()
     hs = SpinHalfHilbertSpace(lattice, indexer)
     seed_state!(hs, div(length(lattice), 2))

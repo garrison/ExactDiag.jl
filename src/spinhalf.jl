@@ -21,7 +21,7 @@ function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = copy(hs.indexer[j])
     state[x1] $= 1
     i = findfirst!(hs.indexer, state)
-    f(i, 1 - (state[x1] << 1))
+    f(i, -im * get_σz(state[x1]))
     nothing
 end
 

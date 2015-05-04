@@ -1,6 +1,6 @@
-immutable SpinHalfHilbertSpace <: HilbertSpace
-    lattice::AbstractLattice  # or we could get rid of this; or just say how many sites
-    indexer
+immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray} <: HilbertSpace
+    lattice::LatticeType
+    indexer::IndexType
 end
 
 # FIXME

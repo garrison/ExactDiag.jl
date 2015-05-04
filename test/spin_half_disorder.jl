@@ -21,23 +21,10 @@ end
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz)
     h_z = [-0.9994218963834927, -0.49906680067568954, 0.3714572638372098, 0.9629810631305735, 0.19369581339829733, -0.7411831242535816, -0.061683656841222456, 0.30784629029574884, -0.42077926330644844, 0.25473615736727395, 0.12683294253359123, -0.6640580830314939]
     apply_hamiltonian = disordered_hamiltonian(h_z)
-
     indexer = IndexedArray{Vector{Int}}()
     hs = SpinHalfHilbertSpace(lattice, indexer)
     seed_state!(hs, div(length(lattice), 2))
-    rows = Int[]
-    cols = Int[]
-    vals = Float64[]
-    j = 1
-    while j <= length(hs.indexer)
-        apply_hamiltonian(hs, j) do i, v
-            push!(rows, i)
-            push!(cols, j)
-            push!(vals, v)
-        end
-        j += 1
-    end
-    mat = sparse(rows, cols, vals, length(hs.indexer), length(hs.indexer))
+    mat = operator_matrix(hs, apply_hamiltonian)
     @test ishermitian(mat)
     #rv = eigs(Hermitian(mat), nev=1, which=:SR)
     evals, evecs = eigs(mat, which=:SR)

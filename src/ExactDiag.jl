@@ -21,7 +21,7 @@ function operator_matrix(hs::HilbertSpace, apply_operator)
 
     rows = Int[]
     cols = Int[]
-    vals = Float64[]
+    vals = Complex128[]
     if length(hs.indexer) > 1
         sizehint!(rows, length(hs.indexer))
         sizehint!(cols, length(hs.indexer))
@@ -38,7 +38,8 @@ function operator_matrix(hs::HilbertSpace, apply_operator)
         j += 1
     end
 
-    return sparse(rows, cols, vals, length(hs.indexer), length(hs.indexer))
+    # NOTE: This function is not type stable, as it may return a real or complex matrix.
+    return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
 
 include("spinhalf.jl")

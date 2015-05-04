@@ -110,37 +110,47 @@ function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x
     nothing
 end
 
-immutable SpinHalfHamiltonian
-    h_x::Float64
-    h_y::Float64
-    h_z::Float64
-    J1_xy::Float64
-    J1_z::Float64
-
-    SpinHalfHamiltonian(; h_x::Real=0.0, h_y::Real=0.0, h_z::Real=0.0, J1_xy::Real=0.0, J1_z::Real=0.0) = new(h_x, h_y, h_z, J1_xy, J1_z)
-end
-
-function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer, ham::SpinHalfHamiltonian)
-    # NOTE: When modifying, we sure to modify this outer conditional
-    # as well!
-    if ham.h_x != 0 || ham.h_y != 0 || ham.h_z != 0
-        for x1 in 1:length(hs.lattice)
-            ham.h_x != 0 && apply_Sx(edapply(f, ham.h_x), hs, j, x1)
-            ham.h_y != 0 && apply_Sy(edapply(f, ham.h_y), hs, j, x1)
-            ham.h_z != 0 && apply_Sz(edapply(f, ham.h_z), hs, j, x1)
-        end
+function spin_half_hamiltonian(; h_x::Real=0.0, h_y::Real=0.0, h_z::Real=0.0, J1_xy::Real=0.0, J1_z::Real=0.0, J2_xy::Real=0.0, J2_z::Real=0.0, J1::Real=0.0, J2::Real=0.0)
+    if J1 != 0
+        J1_xy == J1_z == 0 || throw(ArgumentError("If J1 is provided, J1_xy and J1_z must not be."))
+        J1_xy = J1_z = J1
+    end
+    if J2 != 0
+        J2_xy == J2_z == 0 || throw(ArgumentError("If J2 is provided, J2_xy and J2_z must not be."))
+        J2_xy = J2_z = J2
     end
 
-    # NOTE: When modifying, we sure to modify this outer conditional
-    # as well!
-    if ham.J1_xy != 0 || ham.J1_z != 0
-        neighbors(hs.lattice) do x1, x2, wrap
-            ham.J1_xy != 0 && apply_SxSx_SySy(edapply(f, ham.J1_xy), hs, j, x1, x2)
-            ham.J1_z != 0 && apply_SzSz(edapply(f, ham.J1_z), hs, j, x1, x2)
+    return function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer, ham::SpinHalfHamiltonian)
+        # NOTE: When modifying, we sure to modify this outer conditional
+        # as well!
+        if ham.h_x != 0 || ham.h_y != 0 || ham.h_z != 0
+            for x1 in 1:length(hs.lattice)
+                ham.h_x != 0 && apply_Sx(edapply(f, ham.h_x), hs, j, x1)
+                ham.h_y != 0 && apply_Sy(edapply(f, ham.h_y), hs, j, x1)
+                ham.h_z != 0 && apply_Sz(edapply(f, ham.h_z), hs, j, x1)
+            end
         end
-    end
 
-    nothing
+        # NOTE: When modifying, we sure to modify this outer conditional
+        # as well!
+        if ham.J1_xy != 0 || ham.J1_z != 0
+            neighbors(hs.lattice) do x1, x2, wrap
+                ham.J1_xy != 0 && apply_SxSx_SySy(edapply(f, ham.J1_xy), hs, j, x1, x2)
+                ham.J1_z != 0 && apply_SzSz(edapply(f, ham.J1_z), hs, j, x1, x2)
+            end
+        end
+
+        # NOTE: When modifying, we sure to modify this outer conditional
+        # as well!
+        if ham.J2_xy != 0 || ham.J2_z != 0
+            neighbors(hs.lattice, Val{2}) do x1, x2, wrap
+                ham.J2_xy != 0 && apply_SxSx_SySy(edapply(f, ham.J2_xy), hs, j, x1, x2)
+                ham.J2_z != 0 && apply_SzSz(edapply(f, ham.J2_z), hs, j, x1, x2)
+            end
+        end
+
+        nothing
+    end
 end
 
 get_total_charge(hs::SpinHalfHilbertSpace, state) = 0

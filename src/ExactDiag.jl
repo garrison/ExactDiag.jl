@@ -12,9 +12,17 @@ abstract HilbertSpace
 
 # FIXME: work with BitVector
 
+@doc doc"""
+Multiplies application of a function by a given value.  Often used to provide the parameters in a model Hamiltonian.
+
+For simplicity and consistency, `edapply(f)` with no amplitude defaults to amplitude 1, as a no-operation.
+""" ->
 edapply(f, x::Real) = (i, v) -> f(i, x * v)
 edapply(f) = f
 
+@doc doc"""
+Looks up a (possibly site-dependent) parameter.
+""" ->
 getval(v::Real, i::Integer) = v
 getval{T<:Real}(v::Vector{T}, i::Integer) = v[i]
 

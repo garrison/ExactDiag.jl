@@ -59,6 +59,7 @@ export
     getval,
     operator_matrix,
     seed_state!,
+    get_charge,
     SpinHalfHilbertSpace,
     SpinHalfHilbertSpaceTranslationCache,
     spin_half_hamiltonian,

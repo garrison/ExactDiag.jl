@@ -3,7 +3,10 @@ immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:Abstr
     indexer::IndexType
 end
 
-get_σz(site_state::Integer) = (site_state << 1) - 1
+get_σz(::SpinHalfHilbertSpace, site_state::Integer) = (site_state << 1) - 1
+get_charge(::SpinHalfHilbertSpace, site_state::Integer) = 0
+
+get_total_charge(::SpinHalfHilbertSpace, state) = 0 # because we cannot pick up any phase with twisted boundary conditions
 
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = copy(hs.indexer[j])
@@ -17,13 +20,13 @@ function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = copy(hs.indexer[j])
     state[x1] $= 1
     i = findfirst!(hs.indexer, state)
-    f(i, -im * get_σz(state[x1]))
+    f(i, -im * get_σz(hs, state[x1]))
     nothing
 end
 
 function apply_σz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = hs.indexer[j]
-    f(j, get_σz(state[x1]))
+    f(j, get_σz(hs, state[x1]))
     nothing
 end
 
@@ -42,7 +45,7 @@ end
 
 function apply_σzσz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     state = hs.indexer[j]
-    f(j, get_σz(state[x1]) * get_σz(state[x2]))
+    f(j, get_σz(hs, state[x1]) * get_σz(hs, state[x2]))
     nothing
 end
 
@@ -166,8 +169,6 @@ function spin_half_hamiltonian(;
         nothing
     end
 end
-
-get_total_charge(hs::SpinHalfHilbertSpace, state) = 0
 
 function seed_state!(hs::SpinHalfHilbertSpace, N_up::Integer)
     if !(0 <= N_up <= length(hs.lattice))

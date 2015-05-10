@@ -59,3 +59,26 @@ obc_Sz = [0.380927022651224, -0.136056762511492, 0.118088125191709, -0.324427554
 test_disordered_hamiltonian(ChainLattice([12], diagm([0])), -5.63552961749324, obc_Sz)
 
 # FIXME: Also test SzSz and S+S- correlators (see https://github.com/simple-dmrg/sophisticated-dmrg/blob/master/test_disordered_heisenberg.py)
+
+function my_1d_translate(state)
+    state = copy(state)
+    return unshift!(state, pop!(state))
+end
+
+function test_1d_translation_invariant_hamiltonian(lattice)
+    apply_hamiltonian = spin_half_hamiltonian(J1=1, h_z=2)
+    indexer = IndexedArray{Vector{Int}}()
+    hs = SpinHalfHilbertSpace(lattice, indexer)
+    seed_state!(hs, div(length(lattice), 2))
+    mat = operator_matrix(hs, apply_hamiltonian)
+    @test ishermitian(mat)
+    zzz = SpinHalfHilbertSpaceTranslationCache(hs, 1)
+    for j in 1:length(hs.indexer)
+        i, η = translateη(zzz, j)
+        @test η == 0
+        @test hs.indexer[i] == my_1d_translate(hs.indexer[j])
+        debug && println("$(hs.indexer[j])\t$(hs.indexer[i])\t$η")
+    end
+    # FIXME: test GS energy
+end
+test_1d_translation_invariant_hamiltonian(ChainLattice([12]))

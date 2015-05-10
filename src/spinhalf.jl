@@ -3,10 +3,6 @@ immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:Abstr
     indexer::IndexType
 end
 
-# FIXME
-function apply_translation()
-end
-
 get_σz(site_state::Integer) = (site_state << 1) - 1
 
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
@@ -186,3 +182,28 @@ function seed_state!(hs::SpinHalfHilbertSpace, N_up::Integer)
 end
 
 # seed_state, conserves_sz
+
+@compat immutable SpinHalfHilbertSpaceTranslationCache{LatticeType<:AbstractLattice,IndexType<:AbstractIndexedArray}
+    hs::SpinHalfHilbertSpace{LatticeType,IndexType}
+    direction::Int
+    cache::Vector{Tuple{Int,Rational{Int}}}
+
+    function SpinHalfHilbertSpaceTranslationCache(hs, direction)
+        ltrc = LatticeTranslationCache(hs.lattice, direction)
+        cache = @compat Tuple{Int,Rational{Int}}[]
+        sizehint!(cache, length(hs.indexer))
+        for oldstate in hs.indexer
+            state = zeros(oldstate)
+            for (i, site_state) in enumerate(oldstate)
+                j, η = translateη(ltrc, i)
+                state[j] = site_state
+            end
+            push!(cache, (findfirst(hs.indexer, state), 0//1))
+        end
+        new(hs, Int(direction), cache)
+    end
+end
+
+SpinHalfHilbertSpaceTranslationCache{LatticeType<:AbstractLattice,IndexType<:AbstractIndexedArray}(hs::SpinHalfHilbertSpace{LatticeType,IndexType}, direction::Integer) = SpinHalfHilbertSpaceTranslationCache{LatticeType,IndexType}(hs, direction)
+
+translateη(tc::SpinHalfHilbertSpaceTranslationCache, j::Integer) = tc.cache[j]

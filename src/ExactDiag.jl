@@ -6,6 +6,8 @@ using Bravais
 using IndexedArrays
 using Compat
 
+import Bravais: translateη
+
 abstract HilbertSpace
 
 # FIXME: work with BitVector
@@ -49,8 +51,8 @@ export
     getval,
     operator_matrix,
     seed_state!,
-    apply_translation,
     SpinHalfHilbertSpace,
+    SpinHalfHilbertSpaceTranslationCache,
     spin_half_hamiltonian,
     apply_σx,
     apply_σy,
@@ -64,6 +66,5 @@ export
     apply_SxSx,
     apply_SzSz,
     apply_SxSx_SySy
-
 
 end # module

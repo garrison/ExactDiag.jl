@@ -56,13 +56,14 @@ end
 
 function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     state = hs.indexer[s_j]
+    diagonal = 0.0
 
     for x in eachindex(lattice)
         for x_r in eachindex(lattice)
             # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
             if x == x_r
                 if state[x] == 1 || state[x] == 2
-                    f(s_j, 0.5)
+                    diagonal += 0.5
                 end
             elseif (state[x] == 1 && state[x_r] == 2) || (state[x] == 2 && state[x_r] == 1)
                 other = copy(state)
@@ -79,15 +80,19 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
                 f(s_i, -0.5 * mult)
             end
             # S^z_i S^z_j
-            callback(s_j, 0.25 * get_σz(hs, state[x]) * get_σz(hs, state[x_r]))
+            diagonal += 0.25 * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
         end
     end
+
+    f(s_j, diagonal)
+    nothing
 end
 
 function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     @assert isbipartite(hs.lattice)
 
     state = hs.indexer[s_j]
+    diagonal = 0.0
 
     for x in eachindex(lattice)
         sublattice_index_x = sublattice_index(hs.lattice, x)
@@ -95,7 +100,7 @@ function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
             # 0.5 * (S^+_i S^-_j + S^-_i S^+_j) under duality
             if (x == x_r)
                 if state[x] == 0 || state[x] == 3
-                    f(s_j, 0.5)
+                    diagonal += 0.5
                 end
             elseif (state[x] == 0 && state[x_r] == 3) || (state[x] == 3 && state[x_r] == 0)
                 other = copy(state)
@@ -114,9 +119,12 @@ function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
                 f(s_i, 0.5 * sublattice_factor * mult)
             end
             # S^z_i S^z_j under duality
-            callback(s_j, 0.25 * (get_charge(hs, state[x]) - 1) * (get_charge(hs, state[x_r]) - 1))
+            diagonal += 0.25 * (get_charge(hs, state[x]) - 1) * (get_charge(hs, state[x_r]) - 1)
         end
     end
+
+    f(s_j, diagonal)
+    nothing
 end
 
 function hubbard_hamiltonian(;
@@ -136,6 +144,7 @@ function hubbard_hamiltonian(;
 
     return function apply_hamiltonian(f, hs::HubbardHilbertSpace, s_j::Integer)
         state = hs.indexer[s_j]
+        diagonal = 0.0
 
         neighborsη(hs.lattice) do x::Int, x_r::Int, η::Rational{Int}
             # figure out whether we need to pick up a phase
@@ -195,13 +204,13 @@ function hubbard_hamiltonian(;
             # Nearest neighbor repulsion "V"
             if V != 0
                 c = get_charge(hs, state[x]) * get_charge(hs, state[x_r])
-                c != 0 && f(s_j, 0.25 * V * c)
+                diagonal += 0.25 * V * c
             end
 
             # Nearest neighbor doublon repulsion "W"
             if W != 0
                 if (state[x] == 3 && state[x_r] == 3)
-                    f(s_j, 0.25 * W)
+                    diagonal += 0.25 * W
                 end
             end
 
@@ -219,7 +228,7 @@ function hubbard_hamiltonian(;
             end
             if J_z != 0
                 # S^z_i S^z_j
-                f(s_j, 0.25 * J_z * get_sigma_z(state[x]) * get_sigma_z(state[x_r]))
+                diagonal += 0.25 * J_z * get_sigma_z(state[x]) * get_sigma_z(state[x_r])
             end
         end
 
@@ -231,7 +240,7 @@ function hubbard_hamiltonian(;
                     doubly_occupied_sites += 1
                 end
             end
-            f(s_j, U * doubly_occupied_sites)
+            diagonal += U * doubly_occupied_sites
         end
 
         # total spin term
@@ -243,6 +252,9 @@ function hubbard_hamiltonian(;
         if ϵ_total_isospin != 0
             apply_total_isospin_operator(edapply(f, ϵ_total_isospin), hs, s_j)
         end
+
+        f(s_j, diagonal)
+        nothing
     end
 end
 

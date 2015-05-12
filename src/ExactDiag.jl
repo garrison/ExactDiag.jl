@@ -5,6 +5,7 @@ VERSION < v"0.4-" && using Docile
 using Bravais
 using IndexedArrays
 using Compat
+using SortingAlgorithms
 
 import Bravais: translateη
 
@@ -25,6 +26,18 @@ Looks up a (possibly site-dependent) parameter.
 """ ->
 getval(v::Real, i::Integer) = v
 getval{T<:Real}(v::Vector{T}, i::Integer) = v[i]
+
+function exp_2πiη(η::Rational{Int})
+    d = den(η)
+    if d == 1
+        return one(Complex128)
+    elseif d == 2
+        @assert num(η) & 1 == 1 # otherwise the fraction mustn't be in reduced form
+        return -one(Complex128)
+    else
+        return exp(im * (2π * η))
+    end
+end
 
 function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     length(hs.indexer) > 0 || throw(ArgumentError("Indexer must contain at least one (seed) state."))
@@ -73,6 +86,7 @@ HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceTyp
 translateη(tc::HilbertSpaceTranslationCache, j::Integer) = tc.cache[j]
 
 include("spinhalf.jl")
+include("hubbard.jl")
 
 export
     edapply,
@@ -94,6 +108,8 @@ export
     apply_Sz,
     apply_SxSx,
     apply_SzSz,
-    apply_SxSx_SySy
+    apply_SxSx_SySy,
+    HubbardHilbertSpace,
+    hubbard_hamiltonian
 
 end # module

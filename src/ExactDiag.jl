@@ -89,8 +89,6 @@ include("spinhalf.jl")
 include("hubbard.jl")
 
 export
-    edapply,
-    getval,
     operator_matrix,
     HilbertSpaceTranslationCache,
     seed_state!,

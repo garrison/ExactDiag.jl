@@ -58,8 +58,8 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     state = hs.indexer[s_j]
     diagonal = 0.0
 
-    for x in eachindex(lattice)
-        for x_r in eachindex(lattice)
+    for x in eachindex(hs.lattice)
+        for x_r in eachindex(hs.lattice)
             # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
             if x == x_r
                 if state[x] == 1 || state[x] == 2
@@ -73,7 +73,7 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
                 # figure out whether we need to pick up a phase for the fermions
                 pt = phase_tracker(state, x, x_r)
                 # the following line maps [0, 1, 2, 3] to [1, -1, -1, 1]
-                mult = 1 - ((pt & 2) ^ ((pt & 1) << 1))
+                mult = 1 - ((pt & 2) $ ((pt & 1) << 1))
                 @assert mult == 1 || mult == -1
 
                 # the minus sign comes from working through the site hops carefully.
@@ -94,9 +94,9 @@ function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     state = hs.indexer[s_j]
     diagonal = 0.0
 
-    for x in eachindex(lattice)
+    for x in eachindex(hs.lattice)
         sublattice_index_x = sublattice_index(hs.lattice, x)
-        for x_r in eachindex(lattice)
+        for x_r in eachindex(hs.lattice)
             # 0.5 * (S^+_i S^-_j + S^-_i S^+_j) under duality
             if (x == x_r)
                 if state[x] == 0 || state[x] == 3
@@ -110,7 +110,7 @@ function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
                 # figure out whether we need to pick up a phase for the fermions
                 pt = phase_tracker(state, x, x_r)
                 # the following line maps [0, 1, 2, 3] to [1, -1, -1, 1]
-                mult = 1 - ((pt & 2) ^ ((pt & 1) << 1))
+                mult = 1 - ((pt & 2) $ ((pt & 1) << 1))
                 @assert mult == 1 || mult == -1
 
                 sublattice_parity = sublattice_index_x $ sublattice_index(hs.lattice, x_r)

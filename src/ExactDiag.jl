@@ -52,16 +52,36 @@ function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
 
+@compat immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
+    hs::HilbertSpaceType
+    direction::Int
+    cache::Vector{Tuple{Int,Rational{Int}}}
+
+    function HilbertSpaceTranslationCache(hs, direction)
+        ltrc = LatticeTranslationCache(hs.lattice, direction)
+        cache = @compat Tuple{Int,Rational{Int}}[]
+        sizehint!(cache, length(hs.indexer))
+        for j in eachindex(hs.indexer)
+            push!(cache, translateη(hs, ltrc, j))
+        end
+        new(hs, Int(direction), cache)
+    end
+end
+
+HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, direction::Integer) = HilbertSpaceTranslationCache{HilbertSpaceType}(hs, direction)
+
+translateη(tc::HilbertSpaceTranslationCache, j::Integer) = tc.cache[j]
+
 include("spinhalf.jl")
 
 export
     edapply,
     getval,
     operator_matrix,
+    HilbertSpaceTranslationCache,
     seed_state!,
     get_charge,
     SpinHalfHilbertSpace,
-    SpinHalfHilbertSpaceTranslationCache,
     spin_half_hamiltonian,
     apply_σx,
     apply_σy,

@@ -58,8 +58,8 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     state = hs.indexer[s_j]
     diagonal = 0.0
 
-    for x in eachindex(hs.lattice)
-        for x_r in eachindex(hs.lattice)
+    for x in 1:length(hs.lattice)
+        for x_r in 1:length(hs.lattice)
             # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
             if x == x_r
                 if state[x] == 1 || state[x] == 2
@@ -94,9 +94,9 @@ function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     state = hs.indexer[s_j]
     diagonal = 0.0
 
-    for x in eachindex(hs.lattice)
+    for x in 1:length(hs.lattice)
         sublattice_index_x = sublattice_index(hs.lattice, x)
-        for x_r in eachindex(hs.lattice)
+        for x_r in 1:length(hs.lattice)
             # 0.5 * (S^+_i S^-_j + S^-_i S^+_j) under duality
             if (x == x_r)
                 if state[x] == 0 || state[x] == 3
@@ -235,7 +235,7 @@ function hubbard_hamiltonian(;
         # Hubbard U
         if U != 0
             doubly_occupied_sites = 0
-            for x in eachindex(hs.lattice)
+            for x in 1:length(hs.lattice)
                 if state[x] == 3
                     doubly_occupied_sites += 1
                 end

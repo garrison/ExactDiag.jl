@@ -74,7 +74,7 @@ end
         ltrc = LatticeTranslationCache(hs.lattice, direction)
         cache = @compat Tuple{Int,Rational{Int}}[]
         sizehint!(cache, length(hs.indexer))
-        for j in eachindex(hs.indexer)
+        for j in 1:length(hs.indexer)
             push!(cache, translateη(hs, ltrc, j))
         end
         new(hs, Int(direction), cache)

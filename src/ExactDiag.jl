@@ -65,6 +65,9 @@ function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
 
+expectval(eigenvector::AbstractVector, observable) = dot(eigenvector, observable * eigenvector)
+expectval(eigenvectors::AbstractArray, observable) = [expectval(eigenvectors[:, i], observable) for i in 1:size(eigenvectors, 2)]
+
 @compat immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
     direction::Int
@@ -90,6 +93,7 @@ include("hubbard.jl")
 
 export
     operator_matrix,
+    expectval,
     HilbertSpaceTranslationCache,
     seed_state!,
     get_charge,

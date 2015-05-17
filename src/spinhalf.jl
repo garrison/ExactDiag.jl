@@ -179,7 +179,7 @@ function seed_state!(hs::SpinHalfHilbertSpace, N_up::Integer)
         state[i] = 1
     end
     findfirst!(hs.indexer, state)
-    return state
+    return hs
 end
 
 # seed_state, conserves_sz

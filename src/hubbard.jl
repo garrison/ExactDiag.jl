@@ -273,7 +273,7 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
         state[i] $= 2
     end
     findfirst!(hs.indexer, state)
-    return state
+    return hs
 end
 
 function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::Integer)

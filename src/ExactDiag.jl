@@ -76,8 +76,11 @@ expectval(eigenvectors::AbstractArray, observable) = [expectval(eigenvectors[:, 
     function HilbertSpaceTranslationCache(hs, direction)
         ltrc = LatticeTranslationCache(hs.lattice, direction)
         cache = @compat Tuple{Int,Rational{Int}}[]
+        @assert length(hs.indexer) > 0
         sizehint!(cache, length(hs.indexer))
-        for j in 1:length(hs.indexer)
+        j = 0 # length(cache)
+        while j < length(hs.indexer)
+            j += 1
             push!(cache, translateη(hs, ltrc, j))
         end
         new(hs, Int(direction), cache)

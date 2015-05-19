@@ -1,4 +1,6 @@
-immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray} <: HilbertSpace
+typealias HubbardStateType Vector{Int}
+
+immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace
     lattice::LatticeType
     indexer::IndexType
 end

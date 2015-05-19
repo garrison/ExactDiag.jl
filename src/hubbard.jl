@@ -26,13 +26,15 @@ function get_charge(::HubbardHilbertSpace, site_state::Integer)
     return (site_state & 1) + ((site_state & 2) >> 1)
 end
 
-function get_total_charge(::HubbardHilbertSpace, state::Vector)
+function get_total_charge(hs::HubbardHilbertSpace, state::Vector)
     rv = 0
     for x in state
-        rv += get_charge(x)
+        rv += get_charge(hs, x)
     end
     return rv
 end
+
+get_total_charge(hs::HubbardHilbertSpace, stateidx::Int) = get_total_charge(hs, hs.indexer[stateidx])
 
 # In our second quantization, we use the convention that all up creation
 # operators come before (or after) the dn creation operators.

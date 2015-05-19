@@ -65,8 +65,14 @@ function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
 
-expectval(eigenvector::AbstractVector, observable::AbstractMatrix) = dot(eigenvector, observable * eigenvector)
-expectval(eigenvectors::AbstractArray, observable::AbstractMatrix) = [expectval(eigenvectors[:, i], observable) for i in 1:size(eigenvectors, 2)]
+expectval(statevector::AbstractVector, observable::AbstractMatrix) =
+    dot(statevector, observable * statevector)
+
+expectval(statevectors::AbstractMatrix, observable::AbstractMatrix) =
+    [expectval(statevectors[:, i], observable) for i in 1:size(statevectors, 2)]
+
+expectval{T<:AbstractVector}(statevectors::AbstractVector{T}, observable::AbstractMatrix) =
+    [expectval(statevector, observable) for statevector in statevectors]
 
 @compat immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType

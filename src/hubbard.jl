@@ -322,5 +322,5 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
         phase += 1//2
     end
 
-    return findfirst(hs.indexer, newstate), phase
+    return findfirst!(hs.indexer, newstate), phase
 end

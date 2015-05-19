@@ -192,5 +192,5 @@ function translateη(hs::SpinHalfHilbertSpace, ltrc::LatticeTranslationCache, j:
         j, η = translateη(ltrc, i)
         state[j] = site_state
     end
-    return findfirst(hs.indexer, state), 0//1
+    return findfirst!(hs.indexer, state), 0//1
 end

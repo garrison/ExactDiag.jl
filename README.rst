@@ -2,6 +2,8 @@
 ExactDiag
 =========
 
+Very much a work in progress.
+
 See also: IndexedArrays, LinTables.  And also Bravais.
 
 Available model systems

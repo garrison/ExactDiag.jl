@@ -65,6 +65,20 @@ function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
 
+function operator_apply(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...)
+    s = length(hs.indexer)
+    length(vec) == s || throw(DimensionMismatch())
+    rv = zeros(Complex128, s)
+    for (j, amplitude) in enumerate(vec)
+        if amplitude != 0
+            apply_operator(hs, j, args...) do i, v
+                rv[i] += amplitude * v
+            end
+        end
+    end
+    return rv
+end
+
 expectval(statevector::AbstractVector, observable::AbstractMatrix) =
     dot(statevector, observable * statevector)
 

@@ -208,13 +208,13 @@ function hubbard_hamiltonian(;
             # Nearest neighbor repulsion "V"
             if V != 0
                 c = get_charge(hs, state[x]) * get_charge(hs, state[x_r])
-                diagonal += 0.25 * V * c
+                diagonal += V * c
             end
 
             # Nearest neighbor doublon repulsion "W"
             if W != 0
                 if (state[x] == 3 && state[x_r] == 3)
-                    diagonal += 0.25 * W
+                    diagonal += W
                 end
             end
 

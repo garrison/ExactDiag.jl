@@ -2,6 +2,12 @@
 ExactDiag
 =========
 
+.. image:: https://travis-ci.org/garrison/ExactDiag.jl.svg
+    :target: https://travis-ci.org/garrison/ExactDiag.jl
+
+.. image:: https://coveralls.io/repos/garrison/ExactDiag.jl/badge.svg
+    :target: https://coveralls.io/r/garrison/ExactDiag.jl
+
 Very much a work in progress.
 
 See also: IndexedArrays, LinTables.  And also Bravais.

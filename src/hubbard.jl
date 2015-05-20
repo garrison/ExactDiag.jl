@@ -92,7 +92,7 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     nothing
 end
 
-function apply_total_isospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
+function apply_total_pseudospin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
     @assert isbipartite(hs.lattice)
 
     state = hs.indexer[s_j]
@@ -140,7 +140,7 @@ function hubbard_hamiltonian(;
                              J_xy::Real=0.0,
                              J_z::Real=0.0,
                              ϵ_total_spin::Real=0.0,
-                             ϵ_total_isospin::Real=0.0)
+                             ϵ_total_pseudospin::Real=0.0)
     if J != 0
         J_xy == J_z == 0 || throw(ArgumentError("If J is provided, J_xy and J_z must not be."))
         J_xy = J_z = J
@@ -252,9 +252,9 @@ function hubbard_hamiltonian(;
             apply_total_spin_operator(edapply(f, ϵ_total_spin), hs, s_j)
         end
 
-        # total isospin term
-        if ϵ_total_isospin != 0
-            apply_total_isospin_operator(edapply(f, ϵ_total_isospin), hs, s_j)
+        # total pseudospin term
+        if ϵ_total_pseudospin != 0
+            apply_total_pseudospin_operator(edapply(f, ϵ_total_pseudospin), hs, s_j)
         end
 
         f(s_j, diagonal)

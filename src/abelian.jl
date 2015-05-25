@@ -265,10 +265,11 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     # Contains the (nonzero) norm of each element in reduced_indexer
     norm_v::Vector{Float64}
 
-    # Allows us to get \ket{r} and its coefficient from some element of \ket{r_k}
-    representative_map::Dict{Int, @compat Tuple{Int, Complex128}}
+    # Allows us to get the representative state \ket{r} and its
+    # coefficient given a state \ket{s} (some element of \ket{r_k}).
+    representative_v::Vector{@compat Tuple{Int, Complex128}}
 
-    # Allows us to get \ket{r_k} from \ket{r}
+    # Allows us to explicitly construct \ket{r_k} from \ket{r}
     coefficient_v::Vector{@compat Tuple{Int, Int, Complex128}}
 
     function DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpaceType},
@@ -279,7 +280,7 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
         @assert 0 < momentum_index <= nmomenta(state_table.hs.lattice)
 
         norm_v = Float64[]
-        representative_map = Dict{Int, @compat Tuple{Int, Complex128}}()
+        representative_v = @compat Tuple{Int, Complex128}[(0, 0.0im) for i in 1:length(state_table.hs.indexer)]
         coefficient_v = @compat Tuple{Int, Int, Complex128}[]
 
         d = ndimensions(state_table.hs.lattice)
@@ -310,7 +311,6 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
             # XXX FIXME: make sure all the states in our sector have the same number!
             total_charge = get_total_charge(state_table.hs, z)
             total_momentum = momentum(state_table.hs.lattice, momentum_index, total_charge)
-
 
             iterate_translations(state_table, z, bounds) do iter, current_translation
                 # XXX: assumes translation_period contains only zeroes and ones
@@ -356,14 +356,14 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 #
                 # XXX: rename these, and write down some algebra equations
                 alpha = val / norm;
-                representative_map[idx] = (current_index, alpha)
+                representative_v[idx] = (current_index, alpha)
                 push!(coefficient_v, (current_index, idx, alpha))
             end
         end
 
         n_discovered_indices == length(reduced_indexer) || throw(ArgumentError("The provided reduced_indexer contains states that do not exist in this DiagonalizationSector."))
 
-        return new(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_map, coefficient_v)
+        return new(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
     end
 end
 
@@ -396,14 +396,14 @@ function apply_reduced_hamiltonian(f, diagsect::DiagonalizationSector, reduced_j
     j = diagsect.reduced_indexer[reduced_j]
     reduced_j_norm = diagsect.norm_v[reduced_j]
     diagsect.state_table.apply_hamiltonian(diagsect.state_table.hs, j) do i, amplitude
-        # If representative_map does not have the term, it has zero
-        # norm and is therefore not in our sector, so we ignore it.
-        # This is expected!
-        haskey(diagsect.representative_map, i) || return
-
-        reduced_i, phasemult = diagsect.representative_map[i]
-        @assert 0 < reduced_i <= length(diagsect)
-        f(reduced_i, amplitude * conj(phasemult) / reduced_j_norm)
+        reduced_i, phasemult = diagsect.representative_v[i]
+        # If reduced_i is zero, this term has zero norm and is
+        # therefore not in our sector, so we ignore it.  This is
+        # expected!
+        if reduced_i != 0
+            @assert 0 < reduced_i <= length(diagsect)
+            f(reduced_i, amplitude * conj(phasemult) / reduced_j_norm)
+        end
     end
 end
 

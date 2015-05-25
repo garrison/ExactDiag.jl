@@ -127,7 +127,7 @@ function construct_ρ_A_block(ts::TracerSector, ψ)
     return Hermitian(ρ_A)
 end
 
-function entanglement_entropy{T<:Number}(tracer::Tracer, ψ::AbstractVector{T}, alpha::Real=1.0)
+function entanglement_entropy{T<:Number}(tracer::Tracer, ψ::AbstractVector{T}, alpha::Real=1)
     if alpha == 1
         rv = 0.0
         for sector in tracer.sectors

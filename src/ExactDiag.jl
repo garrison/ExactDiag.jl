@@ -7,6 +7,7 @@ using IndexedArrays
 using Compat
 using SortingAlgorithms
 
+import Base: length, checkbounds
 import Bravais: translateη
 
 abstract HilbertSpace
@@ -114,6 +115,8 @@ translateη(tc::HilbertSpaceTranslationCache, j::Integer) = tc.cache[j]
 include("spinhalf.jl")
 include("hubbard.jl")
 
+include("abelian.jl")
+
 export
     operator_matrix,
     expectval,
@@ -135,6 +138,12 @@ export
     apply_SzSz,
     apply_SxSx_SySy,
     HubbardHilbertSpace,
-    hubbard_hamiltonian
+    hubbard_hamiltonian,
+    RepresentativeStateTable,
+    DiagonalizationSector,
+    apply_reduced_hamiltonian,
+    construct_reduced_hamiltonian,
+    construct_reduced_indexer,
+    get_full_psi
 
 end # module

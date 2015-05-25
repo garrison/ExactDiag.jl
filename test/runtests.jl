@@ -19,3 +19,4 @@ debug = false
 
 include("spin_half.jl")
 include("hubbard.jl")
+include("abelian.jl")

@@ -66,7 +66,7 @@ function my_1d_translate(state)
 end
 
 function test_1d_translation_invariant_hamiltonian(lattice)
-    apply_hamiltonian = spin_half_hamiltonian(J1=1, h_z=2)
+    apply_hamiltonian = spin_half_hamiltonian(J1=1)
     indexer = IndexedArray{Vector{Int}}()
     hs = SpinHalfHilbertSpace(lattice, indexer)
     seed_state!(hs, div(length(lattice), 2))
@@ -79,6 +79,8 @@ function test_1d_translation_invariant_hamiltonian(lattice)
         @test hs.indexer[i] == my_1d_translate(hs.indexer[j])
         debug && println("$(hs.indexer[j])\t$(hs.indexer[i])\t$η")
     end
-    # FIXME: test GS energy
+    # FIXME: compare with Bethe ansatz result and/or DMRG
+    gs_energy, = eigs(mat, which=:SR, nev=1, ritzvec=false)
+    @test_approx_eq gs_energy[1] -3.651093408937176
 end
-test_1d_translation_invariant_hamiltonian(ChainLattice([12]))
+test_1d_translation_invariant_hamiltonian(ChainLattice([8]))

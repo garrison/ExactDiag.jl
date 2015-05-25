@@ -10,7 +10,7 @@ ExactDiag
 
 Very much a work in progress.
 
-See also: IndexedArrays, LinTables.  And also Bravais.
+See also: `IndexedArrays <https://github.com/garrison/IndexedArrays.jl>`_, LinTables (coming soon).  And also `Bravais <https://github.com/garrison/Bravais.jl>`_.
 
 Available model systems
 =======================

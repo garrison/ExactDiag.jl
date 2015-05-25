@@ -14,7 +14,7 @@ end
 my_grow!{T}(vec::AbstractVector{T}, newlen::Integer, value::T=zero(T)) =
     my_grow!(() -> value, vec, newlen)
 
-@compat type StateInfo
+type StateInfo
     # Currently unused, except in tests.  It can be useful to have
     # this to be able to test if two states are in the same
     # equivalence class, though.  In the future we may be able to
@@ -40,9 +40,9 @@ my_grow!{T}(vec::AbstractVector{T}, newlen::Integer, value::T=zero(T)) =
     # FIXME: Shouldn't we just use a hilbertspace translation cache?
     # One annoying thing is that we might need to generate our states
     # before using it, but that should be fine.
-    translation_results::Vector{Tuple{Int, Rational{Int}}}
+    translation_results::Vector{@compat Tuple{Int, Rational{Int}}}
 
-    StateInfo() = new(0, 0, Tuple{Int, Rational{Int}}[])
+    StateInfo() = new(0, 0, @compat(Tuple{Int, Rational{Int}}[]))
 end
 
 # It's the job of this class to know all the representative states (and

@@ -89,10 +89,10 @@ expectval(statevectors::AbstractMatrix, observable::AbstractMatrix) =
 expectval{T<:AbstractVector}(statevectors::AbstractVector{T}, observable::AbstractMatrix) =
     [expectval(statevector, observable) for statevector in statevectors]
 
-@compat immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
+immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
     direction::Int
-    cache::Vector{Tuple{Int,Rational{Int}}}
+    cache::Vector{@compat Tuple{Int,Rational{Int}}}
 
     function HilbertSpaceTranslationCache(hs, direction)
         ltrc = LatticeTranslationCache(hs.lattice, direction)
@@ -104,7 +104,7 @@ expectval{T<:AbstractVector}(statevectors::AbstractVector{T}, observable::Abstra
             j += 1
             push!(cache, translateη(hs, ltrc, j))
         end
-        new(hs, Int(direction), cache)
+        new(hs, @compat(Int(direction)), cache)
     end
 end
 

@@ -117,6 +117,8 @@ include("hubbard.jl")
 
 include("abelian.jl")
 
+include("entropy.jl")
+
 export
     operator_matrix,
     expectval,
@@ -144,6 +146,8 @@ export
     apply_reduced_hamiltonian,
     construct_reduced_hamiltonian,
     construct_reduced_indexer,
-    get_full_psi
+    get_full_psi,
+    Tracer,
+    entanglement_entropy
 
 end # module

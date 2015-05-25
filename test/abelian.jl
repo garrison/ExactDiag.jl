@@ -1,4 +1,6 @@
 # Test RepresentativeStateTable and DiagonalizationSector
+#
+# Also tests entanglement entropy stuff.
 let
     lattice = ChainLattice([8])
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
@@ -22,6 +24,17 @@ let
         # FIXME: move this to a function
         diff = vecnorm(full_ham * full_evec - eval * full_evec)
         @test_approx_eq_eps diff 0 1e-8
+
+        if i == 1
+            L = length(lattice)
+            for L_A in 0:div(L, 2)
+                ψ = get_full_psi(diagsect, evec)
+                ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
+                ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
+                # FIXME: test against known results
+                @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
+            end
+        end
     end
     @test_approx_eq evals[1] -3.651093408937176
 end

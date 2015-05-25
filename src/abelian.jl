@@ -202,6 +202,49 @@ end
 RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function) =
     RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian)
 
+function iterate_translations{F}(f::F, state_table::RepresentativeStateTable, z::Integer, bounds::Vector{Int})
+    d = length(bounds)
+
+    # NOTE: translation_iteration_helper[d] will *only*
+    # ever be translated in the d direction.
+    # translation_iteration_helper[d - 1] will be translated
+    # both in the d direction and the d-1 direction.
+    # translation_iteration_helper[1] is the current element
+    # we want.  The other elements of the array are simply
+    # stored so we can "wrap around" any time an index is
+    # reset to zero.
+    translation_iteration_helper = [(z, 0//1) for i in 1:d]
+    iter = zeros(Int, d)
+
+    while true
+        # First, do what we need.
+        f(iter, translation_iteration_helper[1])
+
+        # Second, advance the counter.
+        i = 1
+        while true
+            i > d && return # we are done iterating
+            iter[i] += 1
+            iter[i] != bounds[i] && break # we have advanced the counter
+            iter[i] = 0 # index i gets wrapped around to zero
+            i += 1
+        end
+
+        # Perform the actual translation associated with
+        # the new counter state.
+        idx, η = translation_iteration_helper[i]
+        idx, η_inc = state_table.state_info_v[idx].translation_results[i]
+        translation_iteration_helper[i] = (idx, η + η_inc)
+
+        # For each index that wrapped around to zero when
+        # advancing the counter, reset it to be the new
+        # untranslated state
+        for j in 1:i-1
+            translation_iteration_helper[j] = translation_iteration_helper[i]
+        end
+    end
+end
+
 # Takes a RepresentativeStateTable, a momentum, and a sector index.
 #
 # Builds up normalization for each representative state, an
@@ -268,69 +311,20 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
             total_charge = get_total_charge(state_table.hs, z)
             total_momentum = momentum(state_table.hs.lattice, momentum_index, total_charge)
 
-            # FIXME: probably make this its own function with a
-            # callback.  then we would need bounds to be a member
-            # variable so we are not always generating it.  or heck,
-            # let's just pass it as an argument!  no, that doesn't
-            # really make sense.
-            let
-                # NOTE: translation_iteration_helper[d] will *only*
-                # ever be translated in the d direction.
-                # translation_iteration_helper[d - 1] will be translated
-                # both in the d direction and the d-1 direction.
-                # translation_iteration_helper[1] is the current element
-                # we want.  The other elements of the array are simply
-                # stored so we can "wrap around" any time an index is
-                # reset to zero (see below).
-                translation_iteration_helper = [(z, 0//1) for i in 1:d]
-                iter = zeros(Int, d)
 
-                while true
-                    # First, do what we need.
-                    let
-                        # XXX: assumes translation_period contains only zeroes and ones
+            iterate_translations(state_table, z, bounds) do iter, current_translation
+                # XXX: assumes translation_period contains only zeroes and ones
 
-                        # fixme: we can precalculate each k_dot_r
-                        # above and store it in a vector somehow,
-                        # though it may be tricky since r is a
-                        # "vector".  then again, we can just have a
-                        # size_t counter alongside, or use a
-                        # multi-dimensional array.
-                        kdr = kdotr(state_table.hs.lattice, total_momentum, iter)
-                        idx, η = translation_iteration_helper[1]
-                        oldval = get!(current_terms, idx, complex(0.0))
-                        current_terms[idx] = oldval + exp(complex(0, kdr + 2π * η)) / translation_count
-                    end
-
-                    # Second, advance the counter.
-                    let
-                        i = 1
-                        while true
-                            i > d && break # we are done iterating; jump out of two loops.
-                            iter[i] += 1
-                            if iter[i] == bounds[i]
-                                iter[i] = 0
-                            else
-                                break # we are done advancing the counter on this iteration
-                            end
-                            i += 1
-                        end
-                        i > d && break
-
-                        # Perform the actual translation associated with
-                        # the new counter state.
-                        idx, η = translation_iteration_helper[i]
-                        idx, η_inc = state_table.state_info_v[idx].translation_results[i]
-                        translation_iteration_helper[i] = (idx, η + η_inc)
-
-                        # For each index that wrapped around to zero when
-                        # advancing the counter, reset it to be the new
-                        # untranslated state
-                        for j in 1:i-1
-                            translation_iteration_helper[j] = translation_iteration_helper[i]
-                        end
-                    end
-                end
+                # fixme: we can precalculate each k_dot_r
+                # above and store it in a vector somehow,
+                # though it may be tricky since r is a
+                # "vector".  then again, we can just have a
+                # size_t counter alongside, or use a
+                # multi-dimensional array.
+                idx, η = current_translation
+                kdr = kdotr(state_table.hs.lattice, total_momentum, iter)
+                oldval = get!(current_terms, idx, complex(0.0))
+                current_terms[idx] = oldval + exp(complex(0, kdr + 2π * η)) / translation_count
             end
 
             normsq = 0.0

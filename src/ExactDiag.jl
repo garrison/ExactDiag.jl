@@ -128,6 +128,7 @@ include("abelian.jl")
 include("entropy.jl")
 
 export
+    HilbertSpace,
     operator_matrix,
     expectval,
     eigenstate_badness,

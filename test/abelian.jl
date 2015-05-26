@@ -18,12 +18,14 @@ let
     reduced_ham = construct_reduced_hamiltonian(diagsect)
     evals, evecs = eigs(reduced_ham, which=:SR)
     for i in 1:length(evals)
-        eval = evals[i]
+        eval = real(evals[i])
         evec = evecs[:,i]
         full_evec = get_full_psi(diagsect, evec)
-        # FIXME: move this to a function
-        diff = vecnorm(full_ham * full_evec - eval * full_evec)
-        @test_approx_eq_eps diff 0 1e-8
+
+        @test_approx_eq_eps eigenstate_badness(full_ham, eval, full_evec) 0 1e-8
+        @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, full_evec) 0 1e-8
+        check_eigenstate(full_ham, eval, full_evec)
+        @test_throws InexactError check_eigenstate(full_ham, eval + 1, full_evec)
 
         if i == 1
             L = length(lattice)

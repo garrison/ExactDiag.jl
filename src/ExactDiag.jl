@@ -89,6 +89,14 @@ expectval(statevectors::AbstractMatrix, observable::AbstractMatrix) =
 expectval{T<:AbstractVector}(statevectors::AbstractVector{T}, observable::AbstractMatrix) =
     [expectval(statevector, observable) for statevector in statevectors]
 
+eigenstate_badness{T<:Number,S<:Number}(hamiltonian::AbstractMatrix{T}, eigenvalue::Real, eigenvector::AbstractVector{S}) =
+    vecnorm(hamiltonian * eigenvector - eigenvalue * eigenvector)
+
+eigenstate_badness{S<:Number}(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{S}) =
+    vecnorm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
+
+check_eigenstate(args...; tolerance=1e-5) = abs(eigenstate_badness(args...)) < tolerance || throw(InexactError())
+
 immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
     direction::Int
@@ -122,6 +130,8 @@ include("entropy.jl")
 export
     operator_matrix,
     expectval,
+    eigenstate_badness,
+    check_eigenstate,
     HilbertSpaceTranslationCache,
     seed_state!,
     get_charge,

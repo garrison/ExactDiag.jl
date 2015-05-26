@@ -17,6 +17,10 @@ immutable TracerSector{StateType<:AbstractVector}
 
     # (idx, idx_A, idx_B) for each state in the sector
     backmap::Vector{@compat Tuple{Int, Int, Int}}
+
+    # To make sure any wavefunctions ψ we are given have the correct
+    # number of elements
+    original_basis_length::Int
 end
 
 immutable Tracer{StateType<:AbstractVector}
@@ -103,7 +107,7 @@ immutable Tracer{StateType<:AbstractVector}
                 push!(by_B[idx_B], (idx_A, idx))
             end
 
-            push!(sectors, TracerSector(indexer_A, indexer_B, by_A, by_B, backmap))
+            push!(sectors, TracerSector(indexer_A, indexer_B, by_A, by_B, backmap, length(basis)))
         end
         @assert isempty(remaining_B)
 
@@ -114,7 +118,7 @@ end
 Tracer(hs::HilbertSpace, sites_A) = Tracer{statetype(hs)}(sites_A, length(hs.lattice), hs.indexer)
 
 function construct_ρ_A_block(ts::TracerSector, ψ)
-    # FIXME: check that ψ has the expected number of elements.  we might need to save this in our data structure
+    length(ψ) == ts.original_basis_length || throw(ArgumentError("Wavefunction ψ has the wrong number of elements"))
     ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))
     for idx_B in 1:length(ts.indexer_B)
         for (a1, i1) in ts.by_B[idx_B]

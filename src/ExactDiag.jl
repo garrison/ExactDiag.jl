@@ -134,6 +134,7 @@ export
     eigenstate_badness,
     check_eigenstate,
     HilbertSpaceTranslationCache,
+    statetype,
     seed_state!,
     get_charge,
     SpinHalfHilbertSpace,

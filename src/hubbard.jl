@@ -5,7 +5,6 @@ immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:Abstra
     indexer::IndexType
 end
 
-statetype(::Type{HubbardHilbertSpace}) = HubbardStateType
 statetype(::HubbardHilbertSpace) = HubbardStateType
 
 # -- 0

@@ -39,7 +39,7 @@ immutable Tracer{StateType<:AbstractVector}
         preliminary_indexer_A = IndexedArray{StateType}()
         preliminary_indexer_B = IndexedArray{StateType}()
         preliminary_backmap = @compat Tuple{Int, Int}[]
-        for state in basis 
+        for state in basis
             idx_A = findfirst!(preliminary_indexer_A, state[sites_A])
             idx_B = findfirst!(preliminary_indexer_B, state[sites_B])
             push!(preliminary_backmap, (idx_A, idx_B))

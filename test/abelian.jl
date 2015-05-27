@@ -29,8 +29,8 @@ let
 
         if i == 1
             L = length(lattice)
+            ψ = get_full_psi(diagsect, evec)
             for L_A in 0:div(L, 2)
-                ψ = get_full_psi(diagsect, evec)
                 ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
                 ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
                 # FIXME: test against known results

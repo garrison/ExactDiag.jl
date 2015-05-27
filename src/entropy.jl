@@ -52,7 +52,7 @@ immutable Tracer{StateType<:AbstractVector}
         end
 
         # Now figure out the independent sectors
-        sectors = TracerSector[]
+        sectors = TracerSector{StateType}[]
         remaining_A = Set(1:length(preliminary_indexer_A))
         remaining_B = Set(1:length(preliminary_indexer_B))
         while !isempty(remaining_A)

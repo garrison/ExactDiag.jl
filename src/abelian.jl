@@ -335,7 +335,6 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
 
             if normsq < 1e-8 # XXX: numerical tuning
                 # this state doesn't exist in this momentum sector
-                println("skipping!\t", normsq)
                 continue
             end
 

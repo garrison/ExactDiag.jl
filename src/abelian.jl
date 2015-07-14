@@ -370,11 +370,11 @@ DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::Representativ
     DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, IndexedArray{Int}())
 
 function DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{HubbardStateType})
-    indexer = state_table.indexer
+    indexer = state_table.hs.indexer
     reduced_indexer = IndexedArray{Int}()
-    sizehint!(reduced_indexer, length(provided_reduced_indexer))
+    #sizehint!(reduced_indexer, length(provided_reduced_indexer))
     for state in provided_reduced_indexer
-        push!(m_reduced_indexer, findfirst!(indexer, state))
+        push!(reduced_indexer, findfirst!(indexer, state))
     end
 
     diagsect = DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, reduced_indexer)

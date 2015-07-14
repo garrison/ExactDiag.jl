@@ -26,7 +26,7 @@ type StateInfo
     representative_index::Int
 
     # If the Hamiltonian contains multiple sectors that do not mix
-    # even the Hamiltonian and translation operators are applied, they
+    # when the Hamiltonian and translation operators are applied, they
     # will be available separately here.  Usually there will only be
     # one sector, unless our basis is mistakenly too large.
     #
@@ -37,7 +37,7 @@ type StateInfo
 
     # The results of translating in each direction.
     #
-    # FIXME: Shouldn't we just use a hilbertspace translation cache?
+    # FIXME: Shouldn't we just use a HilbertSpaceTranslationCache?
     # One annoying thing is that we might need to generate our states
     # before using it, but that should be fine.
     translation_results::Vector{@compat Tuple{Int, Rational{Int}}}

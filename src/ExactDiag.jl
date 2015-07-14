@@ -125,6 +125,8 @@ include("hubbard.jl")
 
 include("abelian.jl")
 
+include("time-evolution.jl")
+
 include("entropy.jl")
 
 export
@@ -159,6 +161,7 @@ export
     construct_reduced_hamiltonian,
     construct_reduced_indexer,
     get_full_psi,
+    time_evolve,
     Tracer,
     entanglement_entropy
 

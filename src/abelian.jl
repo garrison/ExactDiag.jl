@@ -356,7 +356,7 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 # XXX: rename these, and write down some algebra equations
                 alpha = val / norm;
                 representative_v[idx] = (reduced_i, alpha)
-                push!(coefficient_v, (reduced_i, idx, alpha))
+                push!(coefficient_v, (idx, reduced_i, alpha))
             end
         end
 
@@ -440,7 +440,7 @@ end
 function get_full_psi(diagsect::DiagonalizationSector, reduced_psi::AbstractVector)
     length(reduced_psi) == length(diagsect) || throw(DimensionMismatch())
     rv = zeros(Complex128, length(diagsect.state_table.hs.indexer))
-    for (reduced_i, i, alpha) in diagsect.coefficient_v
+    for (i, reduced_i, alpha) in diagsect.coefficient_v
         rv[i] = reduced_psi[reduced_i] * alpha
     end
     return rv

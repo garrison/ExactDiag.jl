@@ -338,12 +338,12 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 continue
             end
 
-            current_index = findfirst!(reduced_indexer, z)
+            reduced_i = findfirst!(reduced_indexer, z)
             n_discovered_indices += 1
 
             my_grow!(norm_v, length(reduced_indexer))
             norm = sqrt(normsq)
-            norm_v[current_index] = norm
+            norm_v[reduced_i] = norm
 
             # Save for later some things we have already calculated
             #
@@ -355,8 +355,8 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 #
                 # XXX: rename these, and write down some algebra equations
                 alpha = val / norm;
-                representative_v[idx] = (current_index, alpha)
-                push!(coefficient_v, (current_index, idx, alpha))
+                representative_v[idx] = (reduced_i, alpha)
+                push!(coefficient_v, (reduced_i, idx, alpha))
             end
         end
 
@@ -395,13 +395,13 @@ function apply_reduced_hamiltonian(f, diagsect::DiagonalizationSector, reduced_j
     j = diagsect.reduced_indexer[reduced_j]
     reduced_j_norm = diagsect.norm_v[reduced_j]
     diagsect.state_table.apply_hamiltonian(diagsect.state_table.hs, j) do i, amplitude
-        reduced_i, phasemult = diagsect.representative_v[i]
+        reduced_i, alpha = diagsect.representative_v[i]
         # If reduced_i is zero, this term has zero norm and is
         # therefore not in our sector, so we ignore it.  This is
         # expected!
         if reduced_i != 0
             @assert 0 < reduced_i <= length(diagsect)
-            f(reduced_i, amplitude * conj(phasemult) / reduced_j_norm)
+            f(reduced_i, amplitude * conj(alpha) / reduced_j_norm)
         end
     end
 end
@@ -440,8 +440,8 @@ end
 function get_full_psi(diagsect::DiagonalizationSector, reduced_psi::AbstractVector)
     length(reduced_psi) == length(diagsect) || throw(DimensionMismatch())
     rv = zeros(Complex128, length(diagsect.state_table.hs.indexer))
-    for (a, b, c) in diagsect.coefficient_v
-        rv[b] = reduced_psi[a] * c
+    for (reduced_i, i, alpha) in diagsect.coefficient_v
+        rv[i] = reduced_psi[reduced_i] * alpha
     end
     return rv
 end

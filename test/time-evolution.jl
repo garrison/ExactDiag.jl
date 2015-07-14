@@ -12,7 +12,8 @@ let
     push!(time_steps, 0)
     output_states = time_evolve(rst, initial_state, time_steps) do sector_index, momentum_index
         diagsect = DiagonalizationSector(rst, sector_index, momentum_index)
-        fact = eigfact(Hermitian(full(construct_reduced_hamiltonian(diagsect))))
+        reduced_hamiltonian = full(construct_reduced_hamiltonian(diagsect))
+        fact = eigfact(Hermitian((reduced_hamiltonian + reduced_hamiltonian') / 2))
         return construct_reduced_indexer(diagsect), fact[:values], fact[:vectors]
     end
 

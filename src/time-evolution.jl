@@ -15,7 +15,6 @@ function time_evolve(load_momentum_sector::Function, state_table::Representative
     # Transform initial state to energy basis
     ###
     initial_energy_state = Complex128[]
-    all_energies = Float64[]
     for sector_index in 1:state_table.sector_count
         for momentum_index in 1:lattice_nmomenta
             reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
@@ -33,10 +32,9 @@ function time_evolve(load_momentum_sector::Function, state_table::Representative
             # Transform to energy basis
             initial_energy_momentum_state = reduced_eigenstates' * initial_momentum_state
             append!(initial_energy_state, initial_energy_momentum_state)
-            append!(all_energies, reduced_energies)
         end
     end
-    @assert length(initial_energy_state) == length(all_energies) == length(state_table.hs.indexer)
+    @assert length(initial_energy_state) == length(state_table.hs.indexer)
 
     ###
     # Time evolve and move back to position basis
@@ -52,7 +50,7 @@ function time_evolve(load_momentum_sector::Function, state_table::Representative
 
             for (t_i, t) in enumerate(time_steps)
                 # Time evolve
-                time_evolved_sector = initial_energy_state[myrange] .* exp(-im * t * all_energies[myrange])
+                time_evolved_sector = initial_energy_state[myrange] .* exp(-im * t * reduced_energies)
 
                 # Move back to momentum basis
                 momentum_state = reduced_eigenstates * time_evolved_sector

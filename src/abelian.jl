@@ -369,7 +369,10 @@ end
 DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int) =
     DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, IndexedArray{Int}())
 
-function DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{HubbardStateType})
+function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{StateType})
+    # because I've been unable to figure out how to require this in the method signature
+    @assert StateType == statetype(state_table.hs)
+
     indexer = state_table.hs.indexer
     reduced_indexer = IndexedArray{Int}()
     #sizehint!(reduced_indexer, length(provided_reduced_indexer))

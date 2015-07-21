@@ -10,7 +10,9 @@ using SortingAlgorithms
 import Base: length, checkbounds
 import Bravais: translateη
 
-abstract HilbertSpace
+abstract HilbertSpace{StateType}
+
+statetype{StateType}(::HilbertSpace{StateType}) = StateType
 
 # FIXME: work with BitVector
 

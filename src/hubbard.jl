@@ -1,11 +1,9 @@
 typealias HubbardStateType Vector{Int}
 
-immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace
+immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace{HubbardStateType}
     lattice::LatticeType
     indexer::IndexType
 end
-
-statetype(::HubbardHilbertSpace) = HubbardStateType
 
 # -- 0
 # u- 1

@@ -1,6 +1,6 @@
 typealias SpinHalfStateType Vector{Int}
 
-immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType}} <: HilbertSpace
+immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType}} <: HilbertSpace{SpinHalfStateType}
     lattice::LatticeType
     indexer::IndexType
 end

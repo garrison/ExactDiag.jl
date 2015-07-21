@@ -15,6 +15,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     # Transform initial state to energy basis
     ###
     initial_energy_states = Array(Complex128, size(initial_states)...)
+    all_energies = sizehint!(Float64[], basis_size)
     offset = 0
     for sector_index in 1:state_table.sector_count
         for momentum_index in 1:nmomenta(state_table.hs.lattice)
@@ -36,15 +37,18 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
                 initial_energy_states[myrange,x] = reduced_eigenstates' * initial_momentum_state
             end
 
+            append!(all_energies, reduced_energies)
+
             offset += length(reduced_indexer)
+            @assert length(all_energies) == offset
         end
     end
     @assert offset == basis_size
 
-    return initial_energy_states
+    return initial_energy_states, all_energies
 end
 
-function time_evolve_to_position_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_state::Vector, time_steps::Vector{Float64})
+function time_evolve_to_position_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_state::Vector, time_steps::AbstractVector{Float64})
     basis_size = length(state_table.hs.indexer)
     if size(initial_energy_state, 1) != basis_size
         throw(ArgumentError("Initial energy state must match indexer size"))
@@ -83,5 +87,7 @@ function time_evolve_to_position_basis(load_momentum_sector::Function, state_tab
     return output_states
 end
 
-time_evolve(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_state::Vector, time_steps::Vector{Float64}) =
-    time_evolve_to_position_basis(load_momentum_sector, state_table, to_energy_basis(load_momentum_sector, state_table, initial_state), time_steps)
+function time_evolve(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_state::Vector, time_steps::AbstractVector{Float64})
+    ψ_e, = to_energy_basis(load_momentum_sector, state_table, initial_state)
+    return time_evolve_to_position_basis(load_momentum_sector, state_table, ψ_e, time_steps)
+end

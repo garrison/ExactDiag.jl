@@ -374,7 +374,11 @@ function DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::Repr
     reduced_indexer = IndexedArray{Int}()
     #sizehint!(reduced_indexer, length(provided_reduced_indexer))
     for state in provided_reduced_indexer
-        push!(reduced_indexer, findfirst!(indexer, state))
+        i = findfirst!(indexer, state)
+        if state_table.state_info_v[i].representative_index != i
+            throw(ArgumentError("reduced_indexer contains states that our state_table has not chosen to be representative"))
+        end
+        push!(reduced_indexer, i)
     end
 
     diagsect = DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, reduced_indexer)

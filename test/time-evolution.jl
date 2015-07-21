@@ -7,7 +7,8 @@ let
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
 
     initial_state = zeros(Complex128, length(rst.hs.indexer))
-    initial_state[1] = (1 + im) / sqrt(2)
+    initial_state[1] = 1 / sqrt(2)
+    initial_state[2] = im / sqrt(2)
     time_steps = logspace(-1.5, 4, 41)
     push!(time_steps, 0)
     output_states = time_evolve(rst, initial_state, time_steps) do sector_index, momentum_index

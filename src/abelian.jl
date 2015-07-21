@@ -202,6 +202,40 @@ end
 RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function) =
     RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian)
 
+# At times we will want to be able to specify which states are used as the
+# representative ones (e.g. if we are loading the results of a previous
+# calculation).  This constructor handles this case by immediately modifying
+# the representative states once the state table has been constructed.
+function RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function, representative_states::AbstractVector)
+    @assert eltype(representative_states) == statetype(hs)
+
+    state_table = RepresentativeStateTable(hs, apply_hamiltonian)
+
+    # Now we just need to set the representative states to those given
+
+    # Plan the mutation
+    old2new = Dict{Int,Int}() # maps the old representative index to the new one
+    for state in representative_states
+        newidx = findfirst(state_table.hs.indexer, state)
+        oldidx = state_table.state_info_v[newidx].representative_index
+        haskey(old2new, oldidx) && throw(ArgumentError("Two states were given in the same equivalence class"))
+        old2new[oldidx] = newidx
+    end
+    for oldidx in state_table.representative_state_indices
+        haskey(old2new, oldidx) || throw(ArgumentError("The states provided do not account for all representative states"))
+    end
+
+    # Perform the mutation
+    for stateinfo in state_table.state_info_v
+        stateinfo.representative_index = old2new[stateinfo.representative_index]
+    end
+    for (i, oldidx) in enumerate(state_table.representative_state_indices)
+        state_table.representative_state_indices[i] = old2new[oldidx]
+    end
+
+    return state_table
+end
+
 function iterate_translations{F}(f::F, state_table::RepresentativeStateTable, z::Integer, bounds::Vector{Int})
     d = length(bounds)
 

@@ -48,7 +48,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     return initial_energy_states, all_energies
 end
 
-function time_evolve_to_position_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_state::Vector, time_steps::AbstractVector{Float64})
+function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_state::Vector, time_steps::AbstractVector{TimeType})
     basis_size = length(state_table.hs.indexer)
     if size(initial_energy_state, 1) != basis_size
         throw(ArgumentError("Initial energy state must match indexer size"))

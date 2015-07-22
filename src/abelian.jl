@@ -206,9 +206,7 @@ RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, a
 # representative ones (e.g. if we are loading the results of a previous
 # calculation).  This constructor handles this case by immediately modifying
 # the representative states once the state table has been constructed.
-function RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function, representative_states::AbstractVector)
-    @assert eltype(representative_states) == statetype(hs)
-
+function RepresentativeStateTable{StateType}(hs::HilbertSpace{StateType}, apply_hamiltonian::Function, representative_states::AbstractVector{StateType})
     state_table = RepresentativeStateTable(hs, apply_hamiltonian)
 
     # Now we just need to set the representative states to those given

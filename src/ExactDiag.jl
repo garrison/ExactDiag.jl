@@ -157,6 +157,7 @@ export
     apply_SxSx_SySy,
     HubbardHilbertSpace,
     hubbard_hamiltonian,
+    spinflipη,
     RepresentativeStateTable,
     DiagonalizationSector,
     apply_reduced_hamiltonian,

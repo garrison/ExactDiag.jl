@@ -198,3 +198,9 @@ function translateη(hs::SpinHalfHilbertSpace, ltrc::LatticeTranslationCache, j:
     end
     return findfirst!(hs.indexer, state), 0//1
 end
+
+function spinflipη(hs::SpinHalfHilbertSpace, j::Integer)
+    state = hs.indexer[j]
+    i = findfirst!(hs.indexer, [x $ 1 for x in state])
+    return i, 0//1
+end

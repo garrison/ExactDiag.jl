@@ -328,3 +328,9 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
 
     return findfirst!(hs.indexer, newstate), phase
 end
+
+function spinflipη(hs::HubbardHilbertSpace, j::Integer)
+    state = hs.indexer[j]
+    i = findfirst!(hs.indexer, [x $ 3 for x in state])
+    return i, 0//1
+end

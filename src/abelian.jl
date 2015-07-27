@@ -25,35 +25,34 @@ type StateInfo
     # value.
     representative_index::Int
 
-    # If the Hamiltonian contains multiple sectors that do not mix
-    # when the Hamiltonian and translation operators are applied, they
-    # will be available separately here.  Usually there will only be
-    # one sector, unless our basis is mistakenly too large.
+    # If the Hamiltonian contains multiple sectors that do not mix when the
+    # Hamiltonian and translation/symmetry operators are applied, they will be
+    # available separately here.  Usually there will only be one sector, unless
+    # our basis is mistakenly too large.
     #
     # This gets initialized to 0, which denotes uninitialized.  The
     # RepresentativeStateTable constructor should set it to its final
     # value.
     sector_index::Int
 
-    # The results of translating in each direction.
-    #
-    # FIXME: Shouldn't we just use a HilbertSpaceTranslationCache?
-    # One annoying thing is that we might need to generate our states
-    # before using it, but that should be fine.
-    translation_results::Vector{@compat Tuple{Int, Rational{Int}}}
+    # The results of translating in each direction, as well as results of any
+    # additional symmetry operations provided.  The length of this vector is
+    # the number of dimensions plus the number of additional symmetries given.
+    transformation_results::Vector{@compat Tuple{Int, Rational{Int}}}
 
     StateInfo() = new(0, 0, @compat(Tuple{Int, Rational{Int}}[]))
 end
 
-# It's the job of this class to know all the representative states (and
-# what sector each is in) as well as what state is obtained by translating
-# each state in each direction.
+# It's the job of this class to know all the representative states (and what
+# sector each is in) as well as what state is obtained by translating each
+# state in each direction (and applying each additional symmetry operation).
 #
 # We may eventually decide to make special optimized versions of this
 # class for certain models.
 #
-# By default (if given no translation_period), it assumes we can translate
-# in every direction.
+# By default (if given no transformation_exponent_v), it assumes we can
+# translate in every direction (except those with open boundary conditions) and
+# apply each provided "additional symmetry" operation (e.g. spin flip).
 immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     # The Hilbert space and the function that applies the Hamiltonian
     #
@@ -63,10 +62,11 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
     apply_hamiltonian::Function
 
-    # How many times we should apply the translatation operator to
-    # advance to the next state.  This is a vector of length `d`.  For
-    # open boundary conditions in a direction, set to 0.  For
-    # periodic, set to 1.
+    # How many times we should apply each translation (or additional symmetry)
+    # operator to advance to the next state.  This is a vector of length `dd`
+    # (i.e. the number of dimensions plus the number of additional symmetries).
+    # For open boundary conditions in a direction, set to 0.  For periodic, set
+    # to 1.
     #
     # Currently this is assumed to have elements that are all either
     # zero or one.  In the future, we could make it so that e.g. if it
@@ -74,7 +74,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     # sites, not one, when implementing the symmetry.  This could be
     # useful for a Hamiltonian where alternating sites have different
     # properties (and has an even number of sites with PBC).
-    translation_period::Vector{Int}
+    transformation_exponent_v::Vector{Int}
 
     # StateInfo for each state in hs.indexer
     state_info_v::Vector{StateInfo}
@@ -85,30 +85,47 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     # Total number of sectors (see above in StateInfo for explanation)
     sector_count::Int
 
-    function RepresentativeStateTable(hs::HilbertSpaceType, apply_hamiltonian::Function,
-                                      translation_period::Vector{Int}=Int[])
-        d = ndimensions(hs.lattice)
+    # The period of each "additional symmetry operation" that was provided
+    # (e.g. spin flip has period 2, since two applications brings us back to
+    # the original state)
+    additional_symmetry_periods::Vector{Int}
 
-        # FIXME: move this logic to the outer constructor
-        if isempty(translation_period)
-            # translation by a single step allowed in each direction that
-            # is not OBC
-            translation_period = [@compat Int(repeater(hs.lattice)[i,i] != 0) for i in 1:d]
+    function RepresentativeStateTable(hs::HilbertSpaceType, apply_hamiltonian::Function,
+                                      additional_symmetries::Vector{@compat Tuple{Function,Int}}=(@compat Tuple{Function,Int})[],
+                                      transformation_exponent_v::Vector{Int}=Int[])
+        for (symm_func, symm_period) in additional_symmetries
+            @assert symm_period > 0
         end
 
-        @assert length(translation_period) == d
+        d = ndimensions(hs.lattice)
+        dd = d + length(additional_symmetries)
+
+        # FIXME: move this logic to the outer constructor
+        if isempty(transformation_exponent_v)
+            # transformation by a single step allowed in each direction that is
+            # not OBC
+            transformation_exponent_v = [@compat Int(i > d || repeater(hs.lattice)[i,i] != 0) for i in 1:dd]
+        end
+
+        @assert length(transformation_exponent_v) == dd
 
         @assert length(hs.indexer) > 0 # otherwise we have no seeded states!
 
         for i in 1:d
-            @assert repeater(hs.lattice)[i, i] != 0 || translation_period[i] == 0
+            @assert repeater(hs.lattice)[i, i] != 0 || transformation_exponent_v[i] == 0
+        end
+        # (nothing equivalent to check for d+1:dd)
+
+        for i in 1:dd
+            # see XXX below
+            @assert transformation_exponent_v[i] == 0 || transformation_exponent_v[i] == 1
         end
 
         state_info_v = StateInfo[]
         representative_state_indices = Int[]
 
         CacheType = LatticeTranslationCache{typeof(hs.lattice)}
-        ltrc = [translation_period[i] != 0 ? Nullable{CacheType}(LatticeTranslationCache(hs.lattice, i)) : Nullable{CacheType}() for i in 1:d]
+        ltrc = [transformation_exponent_v[i] != 0 ? Nullable{CacheType}(LatticeTranslationCache(hs.lattice, i)) : Nullable{CacheType}() for i in 1:d]
 
         sector_count = 0
         for z in 1:length(hs.indexer)
@@ -133,13 +150,14 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 # We found a new representative state in this sector!
                 push!(representative_state_indices, y)
 
-                # Now try to translate in each direction as long as we
-                # are finding new states
-                translation_basis_queue = Set{Int}()
-                push!(translation_basis_queue, y)
+                # Now try to translate in each direction (and perform each
+                # additional symmetry operation) as long as we are finding new
+                # states
+                transformation_basis_queue = Set{Int}()
+                push!(transformation_basis_queue, y)
 
-                while !isempty(translation_basis_queue)
-                    x = pop!(translation_basis_queue)
+                while !isempty(transformation_basis_queue)
+                    x = pop!(transformation_basis_queue)
 
                     # We should not have already visited this
                     @assert !(x <= length(state_info_v) && state_info_v[x].sector_index != 0)
@@ -150,23 +168,25 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
 
                     state_info_v[x].representative_index = y
                     state_info_v[x].sector_index = sector_count
-                    resize!(state_info_v[x].translation_results, d) # NOTE: elements are uninitialized here!
+                    resize!(state_info_v[x].transformation_results, dd) # NOTE: elements are uninitialized here!
 
-                    # translate in each direction
-                    for i in 1:d
-                        if translation_period[i] == 0
-                            state_info_v[x].translation_results[i] = (x, 0//1)
+                    # Translate in each direction, and perform each additional
+                    # symmetry operation on the current state to generate
+                    # states in the same class.
+                    for i in 1:dd
+                        if transformation_exponent_v[i] == 0
+                            state_info_v[x].transformation_results[i] = (x, 0//1)
                         else
                             w = x
                             η = 0//1
-                            for j in 1:translation_period[i] # is always one, for now.
-                                w, η_inc = translateη(hs, get(ltrc[i]), w)  # FIXME: use a HilbertSpaceTranslationCache instead.  but to do so it must be updateable.  and to be updateable it needs to store the ltrc.  i suppose this makes sense.
+                            for j in 1:transformation_exponent_v[i] # is always 0 or 1, for now.
+                                w, η_inc = (i <= d) ? translateη(hs, get(ltrc[i]), w) : additional_symmetries[i-d][1](hs, w)
                                 η += η_inc
                             end
                             if w > length(state_info_v) || state_info_v[w].sector_index == 0
-                                push!(translation_basis_queue, w)
+                                push!(transformation_basis_queue, w)
                             end
-                            state_info_v[x].translation_results[i] = (w, η)
+                            state_info_v[x].transformation_results[i] = (w, η)
                         end
                     end
                 end
@@ -195,19 +215,20 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
         # And while we are at it, check that no sector_index or
         # representative_index is 0 anymore.
 
-        return new(hs, apply_hamiltonian, translation_period, state_info_v, representative_state_indices, sector_count)
+        additional_symmetry_periods = [symm_period for (symm_func, symm_period) in additional_symmetries]
+        return new(hs, apply_hamiltonian, transformation_exponent_v, state_info_v, representative_state_indices, sector_count, additional_symmetry_periods)
     end
 end
 
-RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function) =
-    RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian)
+RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{@compat Tuple{Function,Int}}=(@compat Tuple{Function,Int})[]) =
+    RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian, additional_symmetries)
 
 # At times we will want to be able to specify which states are used as the
 # representative ones (e.g. if we are loading the results of a previous
 # calculation).  This constructor handles this case by immediately modifying
 # the representative states once the state table has been constructed.
-function RepresentativeStateTable{StateType}(hs::HilbertSpace{StateType}, apply_hamiltonian::Function, representative_states::AbstractVector{StateType})
-    state_table = RepresentativeStateTable(hs, apply_hamiltonian)
+function RepresentativeStateTable{StateType}(hs::HilbertSpace{StateType}, apply_hamiltonian::Function, representative_states::AbstractVector{StateType}, additional_args...)
+    state_table = RepresentativeStateTable(hs, apply_hamiltonian, additional_args...)
 
     # Now we just need to set the representative states to those given
 
@@ -234,45 +255,42 @@ function RepresentativeStateTable{StateType}(hs::HilbertSpace{StateType}, apply_
     return state_table
 end
 
-function iterate_translations{F}(f::F, state_table::RepresentativeStateTable, z::Integer, bounds::Vector{Int})
-    d = length(bounds)
+function iterate_transformations{F}(f::F, state_table::RepresentativeStateTable, z::Integer, bounds::Vector{Int})
+    dd = length(bounds) # i.e. number of dimensions plus number of additional symmetry operations
 
-    # NOTE: translation_iteration_helper[d] will *only*
-    # ever be translated in the d direction.
-    # translation_iteration_helper[d - 1] will be translated
-    # both in the d direction and the d-1 direction.
-    # translation_iteration_helper[1] is the current element
-    # we want.  The other elements of the array are simply
-    # stored so we can "wrap around" any time an index is
-    # reset to zero.
-    translation_iteration_helper = [(z, 0//1) for i in 1:d]
-    iter = zeros(Int, d)
+    # NOTE: iteration_helper[dd] will *only* ever be incremented in the dd
+    # direction.  iteration_helper[dd - 1] will be incremented both in the dd
+    # direction and the dd-1 direction.  iteration_helper[1] is the current
+    # element we want.  The other elements of the array are simply stored so we
+    # can "wrap around" any time an index is reset to zero.
+    iteration_helper = [(z, 0//1) for i in 1:dd]
+    iter = zeros(Int, dd)
 
     while true
         # First, do what we need.
-        f(iter, translation_iteration_helper[1])
+        f(iter, iteration_helper[1])
 
         # Second, advance the counter.
         i = 1
         while true
-            i > d && return # we are done iterating
+            i > dd && return # we are done iterating
             iter[i] += 1
             iter[i] != bounds[i] && break # we have advanced the counter
             iter[i] = 0 # index i gets wrapped around to zero
             i += 1
         end
 
-        # Perform the actual translation associated with
-        # the new counter state.
-        idx, η = translation_iteration_helper[i]
-        idx, η_inc = state_table.state_info_v[idx].translation_results[i]
-        translation_iteration_helper[i] = (idx, η + η_inc)
+        # Perform the actual translation (or symmetry operation) associated
+        # with the new counter state.
+        idx, η = iteration_helper[i]
+        idx, η_inc = state_table.state_info_v[idx].transformation_results[i]
+        iteration_helper[i] = (idx, η + η_inc)
 
         # For each index that wrapped around to zero when
         # advancing the counter, reset it to be the new
-        # untranslated state
+        # untransformed state
         for j in 1:i-1
-            translation_iteration_helper[j] = translation_iteration_helper[i]
+            iteration_helper[j] = iteration_helper[i]
         end
     end
 end
@@ -307,29 +325,39 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     function DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpaceType},
                                    sector_index::Int,
                                    momentum_index::Int,
-                                   reduced_indexer::IndexedArray{Int})
+                                   reduced_indexer::IndexedArray{Int},
+                                   additional_symmetry_indices::Vector{Int}=Int[])
         @assert 0 < sector_index <= state_table.sector_count
         @assert 0 < momentum_index <= nmomenta(state_table.hs.lattice)
+
+        @assert length(additional_symmetry_indices) == length(state_table.additional_symmetry_periods)
+        @assert all(0 .<= additional_symmetry_indices .< state_table.additional_symmetry_periods)
 
         norm_v = Float64[]
         representative_v = @compat Tuple{Int, Complex128}[(0, 0.0im) for i in 1:length(state_table.hs.indexer)]
         coefficient_v = @compat Tuple{Int, Int, Complex128}[]
 
         d = ndimensions(state_table.hs.lattice)
-        # This really is just the number of distinct translation steps
-        # we may take, including the identity operation. FIXME: rename
-        translation_count = 1
+        dd = d + length(state_table.additional_symmetry_periods)
 
-        bounds = zeros(Int, d)
-        for i in 1:d
-            if state_table.translation_period[i] != 0
-                @assert state_table.translation_period[i] == 1 # enforce assumption (see XXX below)
-                bounds[i] = repeater(state_table.hs.lattice)[i,i]
-                translation_count *= bounds[i]
+        # This will become the number of distinct combinations of
+        # transformation (i.e. translation + additional symmetry) steps we may
+        # take, including the identity operation.  It is impicitly assumed that
+        # all such operations commute with one another.
+        transformation_count = 1
+
+        bounds = zeros(Int, dd)
+        for i in 1:dd
+            if state_table.transformation_exponent_v[i] != 0
+                @assert state_table.transformation_exponent_v[i] == 1 # enforce assumption (see XXX below)
+                bounds[i] = (i <= d) ? repeater(state_table.hs.lattice)[i,i] : state_table.additional_symmetry_periods[i-d]
+                transformation_count *= bounds[i]
             else
                 bounds[i] = 1
             end
         end
+
+        additional_symmetry_mult = [x//y for (x, y) in zip(additional_symmetry_indices, state_table.additional_symmetry_periods)]
 
         n_discovered_indices = 0
 
@@ -344,8 +372,8 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
             total_charge = get_total_charge(state_table.hs, z)
             total_momentum = momentum(state_table.hs.lattice, momentum_index, total_charge)
 
-            iterate_translations(state_table, z, bounds) do iter, current_translation
-                # XXX: assumes translation_period contains only zeroes and ones
+            iterate_transformations(state_table, z, bounds) do iter, current_transformation
+                # XXX: assumes transformation_exponent_v contains only zeroes and ones
 
                 # fixme: we can precalculate each k_dot_r
                 # above and store it in a vector somehow,
@@ -353,10 +381,11 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 # "vector".  then again, we can just have a
                 # size_t counter alongside, or use a
                 # multi-dimensional array.
-                idx, η = current_translation
-                kdr = kdotr(state_table.hs.lattice, total_momentum, iter)
+                idx, η = current_transformation
+                kdr = kdotr(state_table.hs.lattice, total_momentum, iter[1:d])
+                η += dot(iter[d+1:dd], additional_symmetry_mult)
                 oldval = get!(current_terms, idx, complex(0.0))
-                current_terms[idx] = oldval + exp(complex(0, kdr + 2π * η)) / translation_count
+                current_terms[idx] = oldval + exp(complex(0, kdr + 2π * η)) / transformation_count
             end
 
             normsq = 0.0
@@ -398,10 +427,10 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int) =
-    DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, IndexedArray{Int}())
+DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, additional_symmetry_indices::Vector{Int}=Int[]) =
+    DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, IndexedArray{Int}(), additional_symmetry_indices)
 
-function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{StateType})
+function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{StateType}, additional_symmetry_indices::Vector{Int}=Int[])
     # because I've been unable to figure out how to require this in the method signature
     @assert StateType == statetype(state_table.hs)
 
@@ -416,7 +445,7 @@ function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_t
         push!(reduced_indexer, i)
     end
 
-    diagsect = DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, reduced_indexer)
+    diagsect = DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, reduced_indexer, additional_symmetry_indices)
 
     # Make sure we didn't pick up any additional states that weren't
     # in our indexer before

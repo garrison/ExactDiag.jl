@@ -131,6 +131,8 @@ include("time-evolution.jl")
 
 include("entropy.jl")
 
+spinflip_symmetry = (spinflipη, 2)
+
 export
     HilbertSpace,
     operator_matrix,
@@ -166,6 +168,7 @@ export
     get_full_psi,
     time_evolve,
     Tracer,
-    entanglement_entropy
+    entanglement_entropy,
+    spinflip_symmetry
 
 end # module

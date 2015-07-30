@@ -129,7 +129,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
 
         sector_count = 0
         for z in 1:length(hs.indexer)
-            if z <= length(state_info_v) && state_info_v[z].sector_index != 0
+            if z <= length(state_info_v) && state_info_v[z].representative_index != 0
                 # We've already visited this
                 continue
             end
@@ -142,7 +142,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
             while !isempty(hamiltonian_basis_queue)
                 y = pop!(hamiltonian_basis_queue)
 
-                if y <= length(state_info_v) && state_info_v[y].sector_index != 0
+                if y <= length(state_info_v) && state_info_v[y].representative_index != 0
                     # We've already visited this
                     continue
                 end
@@ -160,7 +160,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                     x = pop!(transformation_basis_queue)
 
                     # We should not have already visited this
-                    @assert !(x <= length(state_info_v) && state_info_v[x].sector_index != 0)
+                    @assert !(x <= length(state_info_v) && state_info_v[x].representative_index != 0)
 
                     # Make sure our array is big enough, in case the indexer grew
                     my_grow!(StateInfo, state_info_v, length(hs.indexer))
@@ -183,7 +183,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                                 w, η_inc = (i <= d) ? translateη(hs, get(ltrc[i]), w) : additional_symmetries[i-d][1](hs, w)
                                 η += η_inc
                             end
-                            if w > length(state_info_v) || state_info_v[w].sector_index == 0
+                            if w > length(state_info_v) || state_info_v[w].representative_index == 0
                                 push!(transformation_basis_queue, w)
                             end
                             state_info_v[x].transformation_results[i] = (w, η)
@@ -200,7 +200,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 # really need to check that it is an eigenstate.
                 apply_hamiltonian(hs, y) do newidx, amplitude
                     if amplitude != 0
-                        if newidx > length(state_info_v) || state_info_v[newidx].sector_index == 0
+                        if newidx > length(state_info_v) || state_info_v[newidx].representative_index == 0
                             push!(hamiltonian_basis_queue, newidx)
                         end
                     end

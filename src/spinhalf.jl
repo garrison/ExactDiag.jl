@@ -68,7 +68,6 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
     end
     nothing
 end
-apply_σxσx_σyσy() = nothing
 
 function apply_Sx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     apply_σx(hs, j, x1) do i, v

@@ -70,44 +70,32 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
 end
 
 function apply_Sx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    apply_σx(hs, j, x1) do i, v
-        f(i, v / 2)
-    end
+    apply_σx(edapply(f, 1/2), hs, j, x1)
     nothing
 end
 
 function apply_Sy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    apply_σy(hs, j, x1) do i, v
-        f(i, v / 2)
-    end
+    apply_σy(edapply(f, 1/2), hs, j, x1)
     nothing
 end
 
 function apply_Sz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    apply_σz(hs, j, x1) do i, v
-        f(i, v / 2)
-    end
+    apply_σz(edapply(f, 1/2), hs, j, x1)
     nothing
 end
 
 function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
-    apply_σxσx(hs, j, x1, x2) do i, v
-        f(i, v / 4)
-    end
+    apply_σxσx(edapply(f, 1/4), hs, j, x1, x2)
     nothing
 end
 
 function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
-    apply_σzσz(hs, j, x1, x2) do i, v
-        f(i, v / 4)
-    end
+    apply_σzσz(edapply(f, 1/4), hs, j, x1, x2)
     nothing
 end
 
 function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
-    apply_σxσx_σyσy(hs, j, x1, x2) do i, v
-        f(i, v / 4)
-    end
+    apply_σxσx_σyσy(edapply(f, 1/4), hs, j, x1, x2)
     nothing
 end
 

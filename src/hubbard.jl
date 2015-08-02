@@ -5,6 +5,8 @@ immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:Abstra
     indexer::IndexType
 end
 
+HubbardHilbertSpace(lattice) = HubbardHilbertSpace(lattice, IndexedArray{HubbardStateType}())
+
 # -- 0
 # u- 1
 # -d 2

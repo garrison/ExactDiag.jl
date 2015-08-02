@@ -5,6 +5,8 @@ immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:Abstr
     indexer::IndexType
 end
 
+SpinHalfHilbertSpace(lattice) = SpinHalfHilbertSpace(lattice, IndexedArray{SpinHalfStateType}())
+
 statetype(::SpinHalfHilbertSpace) = SpinHalfStateType
 
 get_σz(::SpinHalfHilbertSpace, site_state::Integer) = (site_state << 1) - 1

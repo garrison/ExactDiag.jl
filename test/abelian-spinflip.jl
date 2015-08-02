@@ -3,11 +3,10 @@
 #
 # Also tests entanglement entropy stuff.
 let
-    lattice = ChainLattice([8])
+    L = 8
+    hs = SpinHalfHilbertSpace(ChainLattice([L]))
+    seed_state!(hs, div(L, 2))
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
-    indexer = IndexedArray{Vector{Int}}()
-    hs = SpinHalfHilbertSpace(lattice, indexer)
-    seed_state!(hs, div(length(lattice), 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
     @test rst.state_info_v[findfirst(hs.indexer, [1,1,1,0,1,0,0,0])].representative_index == rst.state_info_v[findfirst(hs.indexer, [0,1,1,1,0,1,0,0])].representative_index
     @test rst.state_info_v[findfirst(hs.indexer, [1,1,1,0,1,0,0,0])].representative_index != rst.state_info_v[findfirst(hs.indexer, [0,1,1,1,0,0,1,0])].representative_index
@@ -15,7 +14,7 @@ let
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
     processed_length = 0
-    for k_idx in 1:nmomenta(lattice)
+    for k_idx in 1:nmomenta(hs.lattice)
         for spinflip_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             processed_length += length(diagsect)
@@ -33,7 +32,6 @@ let
                 @test_throws InexactError check_eigenstate(full_ham, eval + 1, full_evec)
 
                 if i == 1
-                    L = length(lattice)
                     ψ = get_full_psi(diagsect, evec)
                     for L_A in 0:div(L, 2)
                         ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
@@ -48,5 +46,5 @@ let
             end
         end
     end
-    @test processed_length == length(indexer)
+    @test processed_length == length(hs.indexer)
 end

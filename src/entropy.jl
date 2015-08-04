@@ -142,12 +142,35 @@ function construct_ρ_A_block(ts::TracerSector, ψ)
     return Hermitian(ρ_A)
 end
 
+# Apparently julia does not special-case eigvals() for small, Hermitian
+# matrices.  When possible, we return the closed-form solution instead of
+# invoking the full eigenvalue machinery.  This can lead to efficiency
+# improvements since for some calculations many of our blocks of ρ_A will be
+# 1x1 or 2x2.
+function myeigvals(mat::Hermitian)
+    if size(mat, 1) == 1
+        # Trivial
+        return [real(mat[1,1])]
+    elseif size(mat, 2) == 2
+        # Obtain the eigenvalues from the quadratic formula
+        a = real(mat[1,1])
+        d = real(mat[2,2])
+        apd = a + d
+        amd = a - d
+        desc = sqrt(amd * amd + 4 * abs2(mat[1,2]))
+        return [(apd - desc) / 2, (apd + desc) / 2]
+    else
+        # Call the full eigenvalue machinery
+        return eigvals(mat)
+    end
+end
+
 function entanglement_entropy{T<:Number}(tracer::Tracer, ψ::AbstractVector{T}, alpha::Real=1)
     if alpha == 1
         rv = 0.0
         for sector in tracer.sectors
             ρ_A = construct_ρ_A_block(sector, ψ)
-            for v in eigvals(ρ_A)
+            for v in myeigvals(ρ_A)
                 v > 0 || continue
                 rv -= v * log(v)
             end
@@ -157,7 +180,7 @@ function entanglement_entropy{T<:Number}(tracer::Tracer, ψ::AbstractVector{T}, 
         s = 0.0
         for sector in tracer.sectors
             ρ_A = construct_ρ_A_block(sector, ψ)
-            for v in eigvals(ρ_A)
+            for v in myeigvals(ρ_A)
                 v > 0 || continue
                 s += v ^ alpha
             end

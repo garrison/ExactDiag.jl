@@ -132,9 +132,10 @@ function construct_ρ_A_block(ts::TracerSector, ψ)
     length(ψ) == ts.original_basis_length || throw(ArgumentError("Wavefunction ψ has the wrong number of elements"))
     ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))
     for idx_B in 1:length(ts.indexer_B)
-        for (a1, i1) in ts.by_B[idx_B]
-            for (a2, i2) in ts.by_B[idx_B]
-                ρ_A[a1, a2] += ψ[i1] * ψ[i2]'
+        z = ts.by_B[idx_B]
+        for (a2, i2) in z
+            for (a1, i1) in z
+                @inbounds ρ_A[a1, a2] += ψ[i1] * ψ[i2]'
             end
         end
     end

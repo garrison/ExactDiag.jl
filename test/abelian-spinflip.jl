@@ -13,6 +13,8 @@ let
 
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
+    @test diagsizes(Tracer(hs, 1:4)) == @compat Dict{Int,Int}(1=>2,4=>2,6=>1)
+
     processed_length = 0
     for k_idx in 1:nmomenta(hs.lattice)
         for spinflip_idx in 0:1

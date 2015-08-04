@@ -168,6 +168,7 @@ export
     get_full_psi,
     time_evolve,
     Tracer,
+    diagsizes,
     entanglement_entropy,
     spinflip_symmetry
 

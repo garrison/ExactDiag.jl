@@ -117,6 +117,17 @@ end
 
 Tracer(hs::HilbertSpace, sites_A) = Tracer{statetype(hs)}(sites_A, length(hs.lattice), hs.indexer)
 
+function diagsizes(tracer::Tracer)
+    # Returns the number of matrices of each size that must be diagonalized to
+    # calculate the QDL diagnostic of a single state
+    rv = Dict{Int,Int}()
+    for sector in tracer.sectors
+        s = length(sector.indexer_A)
+        rv[s] = get(rv, s, 0) + 1
+    end
+    return rv
+end
+
 function construct_ρ_A_block(ts::TracerSector, ψ)
     length(ψ) == ts.original_basis_length || throw(ArgumentError("Wavefunction ψ has the wrong number of elements"))
     ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))

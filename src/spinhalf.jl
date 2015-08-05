@@ -101,6 +101,31 @@ function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x
     nothing
 end
 
+function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
+    state = hs.indexer[j]
+    diagonal = 0.0
+
+    for x in 1:length(hs.lattice)
+        for x_r in 1:length(hs.lattice)
+            # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
+            if x == x_r
+                diagonal += 0.5
+            elseif state[x] $ state[x_r] == 1
+                other = copy(state)
+                other[x] $= 1
+                other[x_r] $= 1
+                s_i = findfirst!(hs.indexer, other)
+                f(s_i, 0.5)
+            end
+            # S^z_i S^z_j
+            diagonal += 0.25 * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
+        end
+    end
+
+    f(j, diagonal)
+    nothing
+end
+
 function spin_half_hamiltonian(;
                                h_x::Union(Real,Vector)=0.0,
                                h_y::Union(Real,Vector)=0.0,
@@ -110,7 +135,8 @@ function spin_half_hamiltonian(;
                                J2_xy::Real=0.0,
                                J2_z::Real=0.0,
                                J1::Real=0.0,
-                               J2::Real=0.0)
+                               J2::Real=0.0,
+                               ϵ_total_spin::Real=0.0)
     if J1 != 0
         J1_xy == J1_z == 0 || throw(ArgumentError("If J1 is provided, J1_xy and J1_z must not be."))
         J1_xy = J1_z = J1
@@ -157,6 +183,10 @@ function spin_half_hamiltonian(;
                 J2_xy != 0 && apply_SxSx_SySy(edapply(f, J2_xy), hs, j, x1, x2)
                 J2_z != 0 && apply_SzSz(edapply(f, J2_z), hs, j, x1, x2)
             end
+        end
+
+        if ϵ_total_spin != 0
+            apply_total_spin_operator(edapply(f, ϵ_total_spin), hs, j)
         end
 
         nothing

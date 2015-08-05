@@ -26,15 +26,14 @@ let
             for i in 1:length(evals)
                 eval = evals[i]
                 evec = evecs[:,i]
-                full_evec = get_full_psi(diagsect, evec)
+                ψ = get_full_psi(diagsect, evec)
 
-                @test_approx_eq_eps eigenstate_badness(full_ham, eval, full_evec) 0 1e-8
-                @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, full_evec) 0 1e-8
-                check_eigenstate(full_ham, eval, full_evec)
-                @test_throws InexactError check_eigenstate(full_ham, eval + 1, full_evec)
+                @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
+                @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, ψ) 0 1e-8
+                check_eigenstate(full_ham, eval, ψ)
+                @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
 
                 if i == 1
-                    ψ = get_full_psi(diagsect, evec)
                     for L_A in 0:div(L, 2)
                         ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
                         ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)

@@ -334,5 +334,14 @@ end
 function spinflipη(hs::HubbardHilbertSpace, j::Integer)
     state = hs.indexer[j]
     i = findfirst!(hs.indexer, [x $ 3 for x in state])
-    return i, 0//1
+
+    # We are implementing the transformation c_↑ ↦ c_↓ and vice versa.  Since
+    # our second-quantization convention assumes all spin-up operators come
+    # before (or, equivalently, after), spin-down operators, we need to account
+    # for this permutation of operators.  The permutation is odd if and only if
+    # there is an odd number of up spins and an odd number of down spins.  The
+    # following line picks up a sign when this is the case.
+    η = (reduce($, state) == 3) ? 1//2 : 0//1
+
+    return i, η
 end

@@ -282,6 +282,27 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
     return hs
 end
 
+function permutation_parity{T}(cdagger::Vector{@compat Tuple{T,Int}})
+    # The second item in each tuple is the index of its original position in
+    # the array
+    parity = 0
+    nparticles = length(cdagger)
+    inspected = falses(nparticles)
+    for i in 1:nparticles
+        inspected[i] && continue
+        j = i
+        while true
+            j = cdagger[j][2]
+            parity $= 1
+            @assert !inspected[j]
+            inspected[j] = true
+            j == i && break
+        end
+        parity $= 1
+    end
+    return parity
+end
+
 function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::Integer)
     state = hs.indexer[j]
     sz = length(state)
@@ -307,20 +328,7 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
 
         # Determine parity of permutation.
         sort!(cdagger, alg=TimSort)
-        nparticles = length(cdagger)
-        inspected = falses(nparticles)
-        for i in 1:nparticles
-            inspected[i] && continue
-            j = i
-            while true
-                j = cdagger[j][2]
-                parity $= 1
-                @assert !inspected[j]
-                inspected[j] = true
-                j == i && break
-            end
-            parity $= 1
-        end
+        parity $= permutation_parity(cdagger)
     end
 
     @assert parity == 0 || parity == 1

@@ -282,17 +282,15 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
     return hs
 end
 
-function permutation_parity{T}(cdagger::Vector{@compat Tuple{T,Int}})
-    # The second item in each tuple is the index of its original position in
-    # the array
+function permutation_parity(perm::Vector{Int})
     parity = 0
-    nparticles = length(cdagger)
+    nparticles = length(perm)
     inspected = falses(nparticles)
     for i in 1:nparticles
         inspected[i] && continue
         j = i
         while true
-            j = cdagger[j][2]
+            j = perm[j]
             parity $= 1
             @assert !inspected[j]
             inspected[j] = true
@@ -311,24 +309,21 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
 
     parity = 0
     for bit in 1:2
-        # The pair is the new site index and the creation operator's original
-        # position in the array (useful so we can determine the parity of the
-        # permutation).
-        cdagger = @compat Tuple{Int,Int}[]
-
+        # Construct the sequence of creation operators
+        cdagger = Int[]
         for i in 1:sz
             if state[i] & bit != 0
                 new_site_index, η = translateη(ltrc, i)
                 @assert 0 < new_site_index <= sz
                 newstate[new_site_index] $= bit
-                push!(cdagger, (new_site_index, length(cdagger)+1))
+                push!(cdagger, new_site_index)
                 phase -= η
             end
         end
 
-        # Determine parity of permutation.
-        sort!(cdagger, alg=TimSort)
-        parity $= permutation_parity(cdagger)
+        # Determine the parity of the permutation that orders them
+        perm = sortperm(cdagger, alg=TimSort)
+        parity $= permutation_parity(perm)
     end
 
     @assert parity == 0 || parity == 1

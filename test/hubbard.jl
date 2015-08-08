@@ -1,10 +1,10 @@
-@test ExactDiag.permutation_parity(@compat Tuple{Int,Int}[]) == 0
-@test ExactDiag.permutation_parity([(1,1)]) == 0
-@test ExactDiag.permutation_parity([(1,1),(2,2)]) == 0
-@test ExactDiag.permutation_parity([(2,2),(1,1)]) == 1
-@test ExactDiag.permutation_parity([(1,1),(2,2),(3,3)]) == 0
-@test ExactDiag.permutation_parity([(3,3),(1,1),(2,2)]) == 0
-@test ExactDiag.permutation_parity([(1,1),(3,3),(2,2)]) == 1
+@test ExactDiag.permutation_parity(Int[]) == 0
+@test ExactDiag.permutation_parity([1]) == 0
+@test ExactDiag.permutation_parity([1,2]) == 0
+@test ExactDiag.permutation_parity([2,1]) == 1
+@test ExactDiag.permutation_parity([1,2,3]) == 0
+@test ExactDiag.permutation_parity([3,1,2]) == 0
+@test ExactDiag.permutation_parity([1,3,2]) == 1
 
 function test_1d_hubbard_hamiltonian(lattice)
     apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=e/1000)

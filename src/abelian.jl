@@ -136,7 +136,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
 
             # We've discovered a new sector!
             sector_count += 1
-            hamiltonian_basis_queue = IndexedArray{Int}()
+            hamiltonian_basis_queue = IntSet()
             push!(hamiltonian_basis_queue, z)
 
             while !isempty(hamiltonian_basis_queue)
@@ -153,7 +153,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 # Now try to translate in each direction (and perform each
                 # additional symmetry operation) as long as we are finding new
                 # states
-                transformation_basis_queue = Set{Int}()
+                transformation_basis_queue = IntSet()
                 push!(transformation_basis_queue, y)
 
                 while !isempty(transformation_basis_queue)
@@ -201,7 +201,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 apply_hamiltonian(hs, y) do newidx, amplitude
                     if amplitude != 0
                         if newidx > length(state_info_v) || state_info_v[newidx].representative_index == 0
-                            findfirst!(hamiltonian_basis_queue, newidx)
+                            push!(hamiltonian_basis_queue, newidx)
                         end
                     end
                 end

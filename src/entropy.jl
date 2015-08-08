@@ -53,8 +53,8 @@ immutable Tracer{StateType<:AbstractVector}
 
         # Now figure out the independent sectors
         sectors = TracerSector{StateType}[]
-        remaining_A = Set(1:length(preliminary_indexer_A))
-        remaining_B = Set(1:length(preliminary_indexer_B))
+        remaining_A = IntSet(1:length(preliminary_indexer_A))
+        remaining_B = IntSet(1:length(preliminary_indexer_B))
         while !isempty(remaining_A)
             @assert !isempty(remaining_B)
 

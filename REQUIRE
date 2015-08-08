@@ -1,6 +1,6 @@
 julia 0.3
 Docile
 Bravais
-IndexedArrays 0.1
+IndexedArrays
 Compat
 SortingAlgorithms

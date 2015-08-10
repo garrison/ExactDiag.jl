@@ -106,50 +106,32 @@ function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
     nothing
 end
 
-function apply_Sx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
+apply_Sx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer) =
     apply_σx(edapply(f, 1/2), hs, j, x1)
-    nothing
-end
 
-function apply_Sy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
+apply_Sy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer) =
     apply_σy(edapply(f, 1/2), hs, j, x1)
-    nothing
-end
 
-function apply_Sz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
+apply_Sz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer) =
     apply_σz(edapply(f, 1/2), hs, j, x1)
-    nothing
-end
 
-function apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+apply_SxSx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
     apply_σxσx(edapply(f, 1/4), hs, j, x1, x2)
-    nothing
-end
 
-function apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+apply_SzSz(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
     apply_σzσz(edapply(f, 1/4), hs, j, x1, x2)
-    nothing
-end
 
-function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
     apply_σxσx_σyσy(edapply(f, 1/4), hs, j, x1, x2)
-    nothing
-end
 
-function apply_SpSm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+apply_SpSm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
     apply_σpσm(f, hs, j, x1, x2)
-    nothing
-end
 
-function apply_SmSp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+apply_SmSp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
     apply_σmσp(f, hs, j, x1, x2)
-    nothing
-end
 
-function apply_SpSm_SmSp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+apply_SpSm_SmSp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
     apply_σpσm_σmσp(f, hs, j, x1, x2)
-    nothing
-end
 
 function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
     state = hs.indexer[j]

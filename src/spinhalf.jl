@@ -71,6 +71,41 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
     nothing
 end
 
+apply_σpσm_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1) =
+    apply_σxσx_σyσy(edapply(f, 1/2), hs, j, x1, x2)
+
+function apply_σpσm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+    state = hs.indexer[j]
+    if state[x2] == 1
+        if x1 == x2
+            f(j, 1)
+        elseif state[x1] == 0
+            state = copy(state)
+            state[x1] $= 1
+            state[x2] $= 1
+            i = findfirst!(hs.indexer, state)
+            f(i, 1)
+        end
+    end
+    nothing
+end
+
+function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+    state = hs.indexer[j]
+    if state[x2] == 0
+        if x1 == x2
+            f(j, 1)
+        elseif state[x1] == 1
+            state = copy(state)
+            state[x1] $= 1
+            state[x2] $= 1
+            i = findfirst!(hs.indexer, state)
+            f(i, 1)
+        end
+    end
+    nothing
+end
+
 function apply_Sx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     apply_σx(edapply(f, 1/2), hs, j, x1)
     nothing
@@ -98,6 +133,21 @@ end
 
 function apply_SxSx_SySy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     apply_σxσx_σyσy(edapply(f, 1/4), hs, j, x1, x2)
+    nothing
+end
+
+function apply_SpSm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+    apply_σpσm(f, hs, j, x1, x2)
+    nothing
+end
+
+function apply_SmSp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+    apply_σmσp(f, hs, j, x1, x2)
+    nothing
+end
+
+function apply_SpSm_SmSp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
+    apply_σpσm_σmσp(f, hs, j, x1, x2)
     nothing
 end
 

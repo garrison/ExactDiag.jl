@@ -93,6 +93,8 @@ expectval(statevectors::AbstractMatrix, observable::AbstractMatrix) =
 expectval{T<:AbstractVector}(statevectors::AbstractVector{T}, observable::AbstractMatrix) =
     [expectval(statevector, observable) for statevector in statevectors]
 
+expectval(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...) = dot(vec, operator_apply(hs, vec, apply_operator, args...))
+
 eigenstate_badness{T<:Number,S<:Number}(hamiltonian::AbstractMatrix{T}, eigenvalue::Real, eigenvector::AbstractVector{S}) =
     vecnorm(hamiltonian * eigenvector - eigenvalue * eigenvector)
 
@@ -153,12 +155,18 @@ export
     apply_σxσx,
     apply_σzσz,
     apply_σxσx_σyσy,
+    apply_σpσm,
+    apply_σmσp,
+    apply_σpσm_σmσp,
     apply_Sx,
     apply_Sy,
     apply_Sz,
     apply_SxSx,
     apply_SzSz,
     apply_SxSx_SySy,
+    apply_SpSm,
+    apply_SmSp,
+    apply_SpSm_SmSp,
     HubbardHilbertSpace,
     hubbard_hamiltonian,
     spinflipη,

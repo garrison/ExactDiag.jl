@@ -490,12 +490,14 @@ function construct_reduced_hamiltonian(diagsect::DiagonalizationSector)
     hmat = sparse(rows, cols, vals, s, s)
 
     # XXX: (numerical) assert hermitian
-    #inhermiticity = (hmat - hmat.adjoint()).cwiseAbs().sum();
-    #if (inhermiticity > 1e-4) // XXX numerical tuning
-    #    std::cerr << "WARNING: matrix is not hermitian by a value of " << inhermiticity << std::endl;
-    #assert(inhermiticity < 1); // XXX numerical assert
+    #inhermiticity = sum(abs(hmat - hmat'))
+    #if inhermiticity > 1e-4 # XXX numerical tuning
+    #    println("WARNING: matrix is not hermitian by a value of $(inhermiticity)")
+    #end
+    #@assert inhermiticity < 1 # XXX numerical assert
 
-    # FIXME: possibly return a Hermitian object
+    # FIXME: possibly return a Hermitian object once Julia supports sparse,
+    # Hermitian matrices
 
     return hmat
 end

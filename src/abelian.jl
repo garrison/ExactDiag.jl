@@ -127,6 +127,9 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
         CacheType = LatticeTranslationCache{typeof(hs.lattice)}
         ltrc = [transformation_exponent_v[i] != 0 ? Nullable{CacheType}(LatticeTranslationCache(hs.lattice, i)) : Nullable{CacheType}() for i in 1:d]
 
+        transformation_basis_queue = IndexedArray{Int}()
+        hamiltonian_basis_queue = IndexedArray{Int}()
+
         sector_count = 0
         for z in 1:length(hs.indexer)
             if z <= length(state_info_v) && state_info_v[z].representative_index != 0
@@ -136,7 +139,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
 
             # We've discovered a new sector!
             sector_count += 1
-            hamiltonian_basis_queue = IntSet()
+            @assert isempty(hamiltonian_basis_queue)
             push!(hamiltonian_basis_queue, z)
 
             while !isempty(hamiltonian_basis_queue)
@@ -153,7 +156,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 # Now try to translate in each direction (and perform each
                 # additional symmetry operation) as long as we are finding new
                 # states
-                transformation_basis_queue = IntSet()
+                @assert isempty(transformation_basis_queue)
                 push!(transformation_basis_queue, y)
 
                 while !isempty(transformation_basis_queue)
@@ -184,7 +187,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                                 η += η_inc
                             end
                             if w > length(state_info_v) || state_info_v[w].representative_index == 0
-                                push!(transformation_basis_queue, w)
+                                findfirst!(transformation_basis_queue, w)
                             end
                             state_info_v[x].transformation_results[i] = (w, η)
                         end
@@ -201,7 +204,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 apply_hamiltonian(hs, y) do newidx, amplitude
                     if amplitude != 0
                         if newidx > length(state_info_v) || state_info_v[newidx].representative_index == 0
-                            push!(hamiltonian_basis_queue, newidx)
+                            findfirst!(hamiltonian_basis_queue, newidx)
                         end
                     end
                 end

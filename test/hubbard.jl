@@ -150,11 +150,12 @@ let
             mat2[j, 3] = exp(-im * pi * r_dn[j] / 3.)
         end
 
+        # Normalize properly
+        mat1 /= sqrt(6)
+        mat2 /= sqrt(6)
+
         slater[i] = det(mat1) * det(mat2)
     end
-
-    # Normalize our wavefunction
-    slater /= norm(slater)
 
     overlap = dot(gs_evec, slater)
     debug && @show overlap

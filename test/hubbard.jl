@@ -90,7 +90,7 @@ let
     @test η6 == 0//1
 end
 
-# Slater determinants
+# explicit Slater determinant for ground state
 let
     L = 6
     lattice = ChainLattice([6])
@@ -99,7 +99,6 @@ let
     seed_state!(hs, div(L, 2), div(L, 2))
 
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
-    full_ham = operator_matrix(hs, apply_hamiltonian)
 
     # Find the ground state wavefunction
     local gs_eval, gs_evec
@@ -111,14 +110,12 @@ let
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
             fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact[:values], fact[:vectors]
-            for i in [1]#1:length(evals)
-                eval = evals[i]
-                evec = evecs[:,i]
-                ψ = get_full_psi(diagsect, evec)
-                if eval < gs_eval
-                    gs_eval = eval
-                    gs_evec = ψ
-                end
+            eval = evals[1]
+            evec = evecs[:,1]
+            ψ = get_full_psi(diagsect, evec)
+            if eval < gs_eval
+                gs_eval = eval
+                gs_evec = ψ
             end
         end
     end
@@ -160,4 +157,123 @@ let
     overlap = dot(gs_evec, slater)
     debug && @show overlap
     @test_approx_eq abs(overlap) 1
+end
+
+# Slater determinants for all eigenstates
+function degenerate_ranges{T<:Real}(v::AbstractVector{T}, tol::T)
+    @assert issorted(v)
+    diffs = v[2:end] - v[1:end-1]
+    indices = find(diffs) do d
+        d > tol
+    end
+    return UnitRange{Int}[x:y for (x, y) in zip([1; indices + 1], [indices; length(v)])]
+end
+
+@test degenerate_ranges([1,2,3,4.0], 0.5) == UnitRange{Int}[1:1, 2:2, 3:3, 4:4]
+@test degenerate_ranges([1,2,3,4.0], 1.2) == UnitRange{Int}[1:4]
+@test degenerate_ranges([1,2,3,5.0], 1.2) == UnitRange{Int}[1:3, 4:4]
+@test degenerate_ranges([0,2,3,4.0], 1.2) == UnitRange{Int}[1:1, 2:4]
+@test degenerate_ranges([0,2,3,5.0], 1.2) == UnitRange{Int}[1:1, 2:3, 4:4]
+
+function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int, ϵ)
+    apply_hamiltonian = hubbard_hamiltonian(t=1)
+    hs = HubbardHilbertSpace(lattice)
+    seed_state!(hs, N_up, N_dn)
+
+    rst = RepresentativeStateTable(hs, apply_hamiltonian)
+
+    # Determine the energy of each possible band filling
+    @assert isbravais(lattice)
+    band_fillings = @compat Dict{Vector{Rational{Int}}, Vector{Tuple{Float64, Vector{Int}, Vector{Int}}}}()
+    for filled_k_up_indices in combinations(1:nmomenta(lattice), N_up)
+        for filled_k_dn_indices in combinations(1:nmomenta(lattice), N_dn)
+            filled_orbitals = map(k_idx -> momentum(lattice, k_idx),
+                                  [filled_k_up_indices; filled_k_dn_indices])
+            energy = mapreduce(ϵ, +, filled_orbitals)
+            total_momentum = rem(reduce(+, filled_orbitals), 1)
+            v = get!(band_fillings, total_momentum) do
+                @compat Tuple{Float64, Vector{Int}, Vector{Int}}[]
+            end
+            push!(v, (energy, filled_k_up_indices, filled_k_dn_indices))
+        end
+    end
+    @assert length(band_fillings) == nmomenta(lattice)
+
+    # Sort by energy at each momentum
+    for v in values(band_fillings)
+        sort!(v, by=(x -> x[1]))
+    end
+    @assert mapreduce(length, +, values(band_fillings)) == length(hs.indexer)
+
+    total_momenta = [rem(momentum(lattice, k_idx, N_up + N_dn), 1) for k_idx in 1:nmomenta(lattice)]
+
+    root_V = sqrt(length(lattice))
+
+    # Construct each Slater determinant wavefunction
+    slater_wfs = [Array(Complex128, length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
+    for (i, state) in enumerate(hs.indexer)
+        # First figure out the positions of the particles
+        r_up = find(x -> x & 1 != 0, state)
+        r_dn = find(x -> x & 2 != 0, state)
+        @assert length(r_up) == N_up
+        @assert length(r_dn) == N_dn
+
+        # Calculate each Slater determinant at these positions
+        for (total_k, slater_wfs_k) in zip(total_momenta, slater_wfs)
+            for (j, (energy, filled_k_up_indices, filled_k_dn_indices)) in enumerate(band_fillings[total_k])
+                # Construct and calculate the two determinants with proper normalization.
+                up_mat = [exp(im * kdotr(lattice, k, r)) / root_V for r in r_up, k in filled_k_up_indices]
+                dn_mat = [exp(im * kdotr(lattice, k, r)) / root_V for r in r_dn, k in filled_k_dn_indices]
+                slater_wfs_k[i, j] = det(up_mat) * det(dn_mat)
+            end
+        end
+    end
+
+    # Diagonalize each momentum sector, and check the energies and overlaps
+    for k_idx in 1:nmomenta(hs.lattice)
+        slater_energies = [energy for (energy, ku, kd) in band_fillings[total_momenta[k_idx]]]
+        diagsect = DiagonalizationSector(rst, 1, k_idx)
+        length(diagsect) != 0 || continue
+        reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+        fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
+        evals, evecs = fact[:values], fact[:vectors]
+
+        # Check the energies
+        @test_approx_eq_eps evals slater_energies 1e-10
+
+        # Check the overlaps
+        i_check = 0
+        for degenerate_range in degenerate_ranges(slater_energies, 1e-8)
+            for i in degenerate_range
+                i_check += 1
+                @assert i == i_check
+
+                ψ = get_full_psi(diagsect, evecs[:,i])
+                # Project ψ into the subspace of Slater determinant eigenstates
+                # at this energy.  It should remain unchanged by this
+                # projection.
+                ϕ = zeros(ψ)
+                for j in degenerate_range
+                    slater_wf = slater_wfs[k_idx][:,j]
+                    ϕ += slater_wf * dot(slater_wf, ψ)
+                end
+                @test_approx_eq_eps ϕ ψ 1e-10
+            end
+        end
+        @test i_check == length(evals)
+    end
+end
+
+let
+    hypercubic_ϵ(k) = -2 * mapreduce(kα -> cos(2π * kα), +, k)
+
+    test_slater_determinants(ChainLattice([6]), 2, 0, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6]), 3, 3, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm([6]), [1//2]), 3, 3, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm([6]), [1//5]), 3, 3, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([5]), 2, 3, hypercubic_ϵ)
+    test_slater_determinants(SquareLattice([2, 3]), 3, 3, hypercubic_ϵ)
+
+    #test_slater_determinants(TriangularLattice([2, 3]), 3, 3)
+    #test_slater_determinants(TriangularLattice([2, 3], diagm([2,3]), [1//2, 1//3]), 3, 3)
 end

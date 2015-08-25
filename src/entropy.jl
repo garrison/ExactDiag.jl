@@ -128,7 +128,7 @@ function diagsizes(tracer::Tracer)
     return rv
 end
 
-function construct_ρ_A_block(ts::TracerSector, ψ)
+function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ::AbstractVector{T})
     length(ψ) == ts.original_basis_length || throw(ArgumentError("Wavefunction ψ has the wrong number of elements"))
     ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))
     for idx_B in 1:length(ts.indexer_B)
@@ -140,6 +140,23 @@ function construct_ρ_A_block(ts::TracerSector, ψ)
         end
     end
     # It should be Hermitian by construction (FIXME: right?)
+    #@assert sum(abs(ρ_A - ρ_A')) == 0
+    return Hermitian(ρ_A)
+end
+
+function construct_ρ_A_block{T<:Number}(ts::TracerSector, ρ::AbstractMatrix{T})
+    size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(ArgumentError("Density matrix ρ has the wrong size"))
+    # FIXME: make sure ρ is Hermitian, or require Hermitian type
+    ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))
+    for idx_B in 1:length(ts.indexer_B)
+        z = ts.by_B[idx_B]
+        for (a2, i2) in z
+            for (a1, i1) in z
+                @inbounds ρ_A[a1, a2] += ρ[i1, i2]
+            end
+        end
+    end
+    #@assert sum(abs(ρ_A - ρ_A')) == 0
     return Hermitian(ρ_A)
 end
 
@@ -166,11 +183,11 @@ function myeigvals(mat::Hermitian)
     end
 end
 
-function entanglement_entropy{T<:Number}(tracer::Tracer, ψ::AbstractVector{T}, alpha::Real=1)
+function entanglement_entropy{T<:Number}(tracer::Tracer, ψ_or_ρ::Union(AbstractVector{T},AbstractMatrix{T}), alpha::Real=1)
     if alpha == 1
         rv = 0.0
         for sector in tracer.sectors
-            ρ_A = construct_ρ_A_block(sector, ψ)
+            ρ_A = construct_ρ_A_block(sector, ψ_or_ρ)
             for v in myeigvals(ρ_A)
                 v > 0 || continue
                 rv -= v * log(v)
@@ -180,7 +197,7 @@ function entanglement_entropy{T<:Number}(tracer::Tracer, ψ::AbstractVector{T}, 
     else
         s = 0.0
         for sector in tracer.sectors
-            ρ_A = construct_ρ_A_block(sector, ψ)
+            ρ_A = construct_ρ_A_block(sector, ψ_or_ρ)
             for v in myeigvals(ρ_A)
                 v > 0 || continue
                 s += v ^ alpha

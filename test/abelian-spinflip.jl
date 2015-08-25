@@ -37,8 +37,10 @@ let
                     for L_A in 0:div(L, 2)
                         ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
                         ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
+                        ent_cut1_dm = entanglement_entropy(Tracer(hs, 1:L_A), ψ * ψ')
                         # FIXME: test against known results
                         @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
+                        @test_approx_eq_eps ent_cut1 ent_cut1_dm 1e-12
                     end
                 end
             end

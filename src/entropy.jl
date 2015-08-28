@@ -128,9 +128,10 @@ function diagsizes(tracer::Tracer)
     return rv
 end
 
-function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ::AbstractVector{T})
-    length(ψ) == ts.original_basis_length || throw(ArgumentError("Wavefunction ψ has the wrong number of elements"))
-    ρ_A = zeros(T, length(ts.indexer_A), length(ts.indexer_A))
+function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T})
+    length(ψ) == ts.original_basis_length || throw(DimensionMismatch("Wavefunction ψ has the wrong number of elements"))
+    size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
+    fill!(ρ_A, zero(T))
     for idx_B in 1:length(ts.indexer_B)
         z = ts.by_B[idx_B]
         for (a2, i2) in z
@@ -144,10 +145,11 @@ function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ::AbstractVector{T}
     return Hermitian(ρ_A)
 end
 
-function construct_ρ_A_block{T<:Number}(ts::TracerSector, ρ::AbstractMatrix{T})
-    size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(ArgumentError("Density matrix ρ has the wrong size"))
+function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ρ::AbstractMatrix{T})
+    size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(DimensionMismatch("Density matrix ρ has the wrong size"))
     # FIXME: make sure ρ is Hermitian, or require Hermitian type
-    ρ_A = zeros(T, length(ts.indexer_A), length(ts.indexer_A))
+    size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
+    fill!(ρ_A, zero(T))
     for idx_B in 1:length(ts.indexer_B)
         z = ts.by_B[idx_B]
         for (a2, i2) in z
@@ -158,6 +160,11 @@ function construct_ρ_A_block{T<:Number}(ts::TracerSector, ρ::AbstractMatrix{T}
     end
     #@assert sum(abs(ρ_A - ρ_A')) == 0
     return Hermitian(ρ_A)
+end
+
+function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ_or_ρ::Union(AbstractVector{T},AbstractMatrix{T}))
+    M = length(ts.indexer_A)
+    return construct_ρ_A_block!(Array(T, M, M), ts, ψ_or_ρ)
 end
 
 # Apparently julia does not special-case eigvals() for small, Hermitian

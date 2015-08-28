@@ -130,7 +130,7 @@ end
 
 function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ::AbstractVector{T})
     length(ψ) == ts.original_basis_length || throw(ArgumentError("Wavefunction ψ has the wrong number of elements"))
-    ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))
+    ρ_A = zeros(T, length(ts.indexer_A), length(ts.indexer_A))
     for idx_B in 1:length(ts.indexer_B)
         z = ts.by_B[idx_B]
         for (a2, i2) in z
@@ -147,7 +147,7 @@ end
 function construct_ρ_A_block{T<:Number}(ts::TracerSector, ρ::AbstractMatrix{T})
     size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(ArgumentError("Density matrix ρ has the wrong size"))
     # FIXME: make sure ρ is Hermitian, or require Hermitian type
-    ρ_A = zeros(Complex128, length(ts.indexer_A), length(ts.indexer_A))
+    ρ_A = zeros(T, length(ts.indexer_A), length(ts.indexer_A))
     for idx_B in 1:length(ts.indexer_B)
         z = ts.by_B[idx_B]
         for (a2, i2) in z

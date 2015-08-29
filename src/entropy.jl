@@ -132,14 +132,13 @@ function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSec
     length(ψ) == ts.original_basis_length || throw(DimensionMismatch("Wavefunction ψ has the wrong number of elements"))
     size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
     fill!(ρ_A, zero(T))
-    for idx_B in 1:length(ts.indexer_B)
-        z = ts.by_B[idx_B]
-        for (a2, i2) in z
-            for (a1, i1) in z
-                @inbounds ρ_A[a1, a2] += ψ[i1] * ψ[i2]'
-            end
+    psimat = zeros(T, length(ts.indexer_A), length(ts.indexer_B))
+    for b in 1:length(ts.indexer_B)
+        for (a, i) in ts.by_B[b]
+            psimat[a, b] = ψ[i]
         end
     end
+    A_mul_Bc!(ρ_A, psimat, psimat)
     # It should be Hermitian by construction (FIXME: right?)
     #@assert sum(abs(ρ_A - ρ_A')) == 0
     return Hermitian(ρ_A)

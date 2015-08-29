@@ -128,11 +128,11 @@ function diagsizes(tracer::Tracer)
     return rv
 end
 
-function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T})
+function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T})
     length(ψ) == ts.original_basis_length || throw(DimensionMismatch("Wavefunction ψ has the wrong number of elements"))
+    size(psimat) == (length(ts.indexer_A), length(ts.indexer_B)) || throw(DimensionMismatch("psimat has the wrong size"))
     size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
-    fill!(ρ_A, zero(T))
-    psimat = zeros(T, length(ts.indexer_A), length(ts.indexer_B))
+    fill!(psimat, zero(T))
     for b in 1:length(ts.indexer_B)
         for (a, i) in ts.by_B[b]
             psimat[a, b] = ψ[i]
@@ -143,6 +143,9 @@ function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSec
     #@assert sum(abs(ρ_A - ρ_A')) == 0
     return Hermitian(ρ_A)
 end
+
+construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T}) =
+    construct_ρ_A_block!(ρ_A, Array(T, length(ts.indexer_A), length(ts.indexer_B)), ts, ψ)
 
 function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ρ::AbstractMatrix{T})
     size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(DimensionMismatch("Density matrix ρ has the wrong size"))

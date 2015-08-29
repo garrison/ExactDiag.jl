@@ -175,6 +175,7 @@ export
     apply_reduced_hamiltonian,
     construct_reduced_hamiltonian,
     construct_reduced_indexer,
+    get_full_psi!,
     get_full_psi,
     time_evolve,
     Tracer,

@@ -510,14 +510,18 @@ function construct_reduced_indexer(diagsect::DiagonalizationSector)
     return IndexedArray{eltype(original_indexer)}([original_indexer[i] for i in diagsect.reduced_indexer])
 end
 
-function get_full_psi(diagsect::DiagonalizationSector, reduced_psi::AbstractVector)
-    length(reduced_psi) == length(diagsect) || throw(DimensionMismatch())
-    rv = zeros(Complex128, length(diagsect.state_table.hs.indexer))
+function get_full_psi!(full_psi::Vector{Complex128}, diagsect::DiagonalizationSector, reduced_psi::AbstractVector)
+    length(reduced_psi) == length(diagsect) || throw(DimensionMismatch("reduced_psi has the wrong length"))
+    length(full_psi) == length(diagsect.state_table.hs.indexer) || throw(DimensionMismatch("full_psi has the wrong length"))
+    fill!(full_psi, zero(Complex128))
     for (i, reduced_i, alpha) in diagsect.coefficient_v
-        rv[i] = reduced_psi[reduced_i] * alpha
+        full_psi[i] = reduced_psi[reduced_i] * alpha
     end
-    return rv
+    return full_psi
 end
+
+get_full_psi(diagsect::DiagonalizationSector, reduced_psi::AbstractVector) =
+    get_full_psi!(Array(Complex128, length(diagsect.state_table.hs.indexer)), diagsect, reduced_psi)
 
 # FIXME: these diagonalization functions are overkill for systems without symmetry.
 #   1) they force the use of ComplexType

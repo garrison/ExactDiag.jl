@@ -277,6 +277,8 @@ let
 
     test_slater_determinants(ChainLattice([6]), 2, 0, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([6]), 3, 3, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm([6]), [1//2]), 1, 0, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm([6]), [1//5]), 1, 0, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([6], diagm([6]), [1//2]), 3, 3, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([6], diagm([6]), [1//5]), 3, 3, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([5]), 2, 3, hypercubic_ϵ)

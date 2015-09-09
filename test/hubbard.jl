@@ -6,6 +6,11 @@
 @test ExactDiag.permutation_parity([3,1,2]) == 0
 @test ExactDiag.permutation_parity([1,3,2]) == 1
 
+@test ExactDiag.site_spinflip(0) == 0
+@test ExactDiag.site_spinflip(1) == 2
+@test ExactDiag.site_spinflip(2) == 1
+@test ExactDiag.site_spinflip(3) == 3
+
 function test_1d_hubbard_hamiltonian(lattice)
     apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=e/1000)
     hs = HubbardHilbertSpace(lattice)
@@ -38,6 +43,7 @@ let L = 4
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             processed_length += length(diagsect)
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            @test vecnorm(reduced_ham - reduced_ham') < 1e-5
             fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact[:values], fact[:vectors]
             for i in 1:length(evals)
@@ -108,6 +114,7 @@ let
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            @test vecnorm(reduced_ham - reduced_ham') < 1e-5
             fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact[:values], fact[:vectors]
             eval = evals[1]
@@ -235,6 +242,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
         diagsect = DiagonalizationSector(rst, 1, k_idx)
         length(diagsect) != 0 || continue
         reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+        @test vecnorm(reduced_ham - reduced_ham') < 1e-5
         fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
         evals, evecs = fact[:values], fact[:vectors]
 
@@ -277,3 +285,50 @@ let
     #test_slater_determinants(TriangularLattice([2, 3]), 3, 3)
     #test_slater_determinants(TriangularLattice([2, 3], diagm([2,3]), [1//2, 1//3]), 3, 3)
 end
+
+function test_1d_hubbard_abelian_spinflip(lattice, N_updn)
+    hs = HubbardHilbertSpace(lattice)
+    seed_state!(hs, N_updn, N_updn)
+    apply_hamiltonian = hubbard_hamiltonian(t=1, U=2)
+    rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
+
+    full_ham = operator_matrix(hs, apply_hamiltonian)
+
+    processed_length = 0
+    for k_idx in 1:nmomenta(hs.lattice)
+        for spinflip_idx in 0:1
+            diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
+            length(diagsect) != 0 || continue
+            processed_length += length(diagsect)
+            reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            @test vecnorm(reduced_ham - reduced_ham') < 1e-5
+            fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
+            evals, evecs = fact[:values], fact[:vectors]
+            for i in 1:length(evals)
+                eval = evals[i]
+                evec = evecs[:,i]
+                ψ = get_full_psi(diagsect, evec)
+
+                @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
+
+                if i == 1
+                    let L = length(lattice)
+                        for L_A in 0:div(L, 2)
+                            ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
+                            ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
+                            @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
+                        end
+                    end
+                end
+            end
+        end
+    end
+    @test processed_length == length(hs.indexer)
+end
+
+test_1d_hubbard_abelian_spinflip(ChainLattice([6]), 2)
+test_1d_hubbard_abelian_spinflip(ChainLattice([6]), 3)
+test_1d_hubbard_abelian_spinflip(ChainLattice([2], diagm([2]), [1//3]), 1)
+test_1d_hubbard_abelian_spinflip(ChainLattice([4], diagm([4]), [1//3]), 2)
+test_1d_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//2]), 3)
+test_1d_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//5]), 3)

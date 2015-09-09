@@ -334,9 +334,15 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
     return findfirst!(hs.indexer, newstate), phase
 end
 
+function site_spinflip(site_state)
+    let x = (site_state + 1) & 2
+        return site_state $ (x | (x >> 1))
+    end
+end
+
 function spinflipη(hs::HubbardHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, [x $ 3 for x in state])
+    i = findfirst!(hs.indexer, map(site_spinflip, state))
 
     # We are implementing the transformation c_↑ ↦ c_↓ and vice versa.  Since
     # our second-quantization convention assumes all spin-up operators come

@@ -391,10 +391,7 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 current_terms[idx] = oldval + exp(complex(0, kdr + 2π * η)) / transformation_count
             end
 
-            normsq = 0.0
-            for (idx, val) in current_terms
-                normsq += abs2(val)
-            end
+            normsq = mapreduce(abs2, +, values(current_terms))
             #println("$(state_table.hs.indexer[z])\t$(momentum_index)\t$(length(current_terms))\t$(normsq)")
 
             if normsq < 1e-8 # XXX: numerical tuning

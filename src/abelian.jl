@@ -423,6 +423,8 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
 
         n_discovered_indices == length(reduced_indexer) || throw(ArgumentError("The provided reduced_indexer contains states that do not exist in this DiagonalizationSector."))
 
+        sort!(coefficient_v) # should make get_full_psi() more cache-friendly
+
         return new(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
     end
 end

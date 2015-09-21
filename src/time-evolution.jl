@@ -24,9 +24,11 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
             myrange = offset+1 : offset+length(reduced_indexer)
             diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
 
+            initial_momentum_state = Array(Complex128, length(diagsect))
+
             for x in 1:nstates
                 # Project onto current momentum basis
-                initial_momentum_state = zeros(Complex128, length(diagsect))
+                fill!(initial_momentum_state, 0)
                 for (i, (reduced_i, alpha)) in enumerate(diagsect.representative_v)
                     if reduced_i != 0
                         initial_momentum_state[reduced_i] += initial_states[i,x] * conj(alpha)

@@ -164,7 +164,7 @@ function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSec
     return Hermitian(ρ_A)
 end
 
-function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ_or_ρ::Union(AbstractVector{T},AbstractMatrix{T}))
+function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ_or_ρ::@compat(Union{AbstractVector{T},AbstractMatrix{T}}))
     M = length(ts.indexer_A)
     return construct_ρ_A_block!(Array(T, M, M), ts, ψ_or_ρ)
 end
@@ -192,7 +192,7 @@ function myeigvals(mat::Hermitian)
     end
 end
 
-function entanglement_entropy{T<:Number}(tracer::Tracer, ψ_or_ρ::Union(AbstractVector{T},AbstractMatrix{T}), alpha::Real=1)
+function entanglement_entropy{T<:Number}(tracer::Tracer, ψ_or_ρ::@compat(Union{AbstractVector{T},AbstractMatrix{T}}), alpha::Real=1)
     if alpha == 1
         rv = 0.0
         for sector in tracer.sectors

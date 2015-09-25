@@ -36,7 +36,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
                 end
 
                 # Transform to energy basis
-                initial_energy_states[myrange,x] = reduced_eigenstates' * initial_momentum_state
+                initial_energy_states[myrange,x] = Ac_mul_B(reduced_eigenstates, initial_momentum_state)
             end
 
             append!(all_energies, reduced_energies)

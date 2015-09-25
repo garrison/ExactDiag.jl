@@ -17,14 +17,14 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     initial_energy_states = Array(Complex128, size(initial_states)...)
     all_energies = sizehint!(Float64[], basis_size)
     offset = 0
+    initial_momentum_state = Complex128[]
     for sector_index in 1:state_table.sector_count
         for momentum_index in 1:nmomenta(state_table.hs.lattice)
             reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
             @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
             myrange = offset+1 : offset+length(reduced_indexer)
             diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
-
-            initial_momentum_state = Array(Complex128, length(diagsect))
+            resize!(initial_momentum_state, length(diagsect))
 
             for x in 1:nstates
                 # Project onto current momentum basis
@@ -61,19 +61,21 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
     ###
     output_states = zeros(Complex128, basis_size, length(time_steps))
     offset = 0
+    momentum_state = Complex128[]
     for sector_index in 1:state_table.sector_count
         for momentum_index in 1:nmomenta(state_table.hs.lattice)
             reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
             @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
             myrange = offset+1 : offset+length(reduced_indexer)
             diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
+            resize!(momentum_state, length(diagsect))
 
             for (t_i, t) in enumerate(time_steps)
                 # Time evolve
                 time_evolved_sector = initial_energy_state[myrange] .* exp(-im * t * reduced_energies)
 
                 # Move back to momentum basis
-                momentum_state = reduced_eigenstates * time_evolved_sector
+                A_mul_B!(momentum_state, reduced_eigenstates, time_evolved_sector)
 
                 # Move back to position basis
                 for (i, reduced_i, alpha) in diagsect.coefficient_v

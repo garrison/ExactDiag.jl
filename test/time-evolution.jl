@@ -11,12 +11,15 @@ let
     initial_state[2] = im / sqrt(2)
     time_steps = logspace(-1.5, 4, 41)
     push!(time_steps, 0)
-    output_states = time_evolve(rst, initial_state, time_steps) do sector_index, momentum_index
+
+    function load_momentum_sector(sector_index, momentum_index)
         diagsect = DiagonalizationSector(rst, sector_index, momentum_index)
         reduced_hamiltonian = full(construct_reduced_hamiltonian(diagsect))
         fact = eigfact(Hermitian((reduced_hamiltonian + reduced_hamiltonian') / 2))
         return construct_reduced_indexer(diagsect), fact[:values], fact[:vectors]
     end
+
+    output_states = time_evolve(load_momentum_sector, rst, initial_state, time_steps)
 
     # Test that time-evolved norms are all (essentially) unity
     for t_i in 1:length(time_steps)
@@ -25,4 +28,8 @@ let
 
     # Test that evolving for zero time returns that same wavefunction
     @test_approx_eq initial_state output_states[:, end]
+
+    # Test that evolving forward, then backwards, returns the same wavefunction
+    reverse_evolved_state = time_evolve(load_momentum_sector, rst, output_states[:, end], [-time_steps[end]])
+    @test_approx_eq initial_state reverse_evolved_state
 end

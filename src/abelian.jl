@@ -452,7 +452,7 @@ function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_t
     # Make sure we didn't pick up any additional states that weren't
     # in our indexer before
     @assert length(reduced_indexer) == length(provided_reduced_indexer)
-    @assert all(diagsect.norm_v .!= 0)
+    @assert all(x -> x != 0, diagsect.norm_v)
 
     return diagsect
 end

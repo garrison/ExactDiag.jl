@@ -4,7 +4,7 @@
 # constructing the original state in the energy basis, and again when
 # moving the time evolved states back to the position basis.
 
-function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::@compat(Union{Vector,Matrix}))
+function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat)
     basis_size = length(state_table.hs.indexer)
     if size(initial_states, 1) != basis_size
         throw(ArgumentError("Initial state must match indexer size"))

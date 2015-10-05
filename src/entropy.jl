@@ -128,16 +128,21 @@ function diagsizes(tracer::Tracer)
     return rv
 end
 
-function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T})
+function construct_psimat_block!{T<:Number}(psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T})
     length(ψ) == ts.original_basis_length || throw(DimensionMismatch("Wavefunction ψ has the wrong number of elements"))
     size(psimat) == (length(ts.indexer_A), length(ts.indexer_B)) || throw(DimensionMismatch("psimat has the wrong size"))
-    size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
     fill!(psimat, zero(T))
     for b in 1:length(ts.indexer_B)
         for (a, i) in ts.by_B[b]
             psimat[a, b] = ψ[i]
         end
     end
+    return psimat
+end
+
+function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T})
+    size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
+    construct_psimat_block!(psimat, ts, ψ)
     A_mul_Bc!(ρ_A, psimat, psimat)
     # It should be Hermitian by construction (FIXME: right?)
     #@assert sum(abs(ρ_A - ρ_A')) == 0

@@ -186,16 +186,18 @@ function spin_half_hamiltonian(;
         end
     end
 
-    return function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer)
+    return function apply_hamiltonian(f, hs::SpinHalfHilbertSpace, j::Integer, sitefilter=(siteidx -> true))
         len == 0 || len == length(hs.lattice) || throw(ArgumentError("Lattice size does not match size of disorder potential."))
 
         # NOTE: When modifying, we sure to modify this outer conditional
         # as well!
         if h_x != 0 || h_y != 0 || h_z != 0
             for x1 in 1:length(hs.lattice)
-                h_x != 0 && apply_Sx(edapply(f, getval(h_x, x1)), hs, j, x1)
-                h_y != 0 && apply_Sy(edapply(f, getval(h_y, x1)), hs, j, x1)
-                h_z != 0 && apply_Sz(edapply(f, getval(h_z, x1)), hs, j, x1)
+                if sitefilter(x1)
+                    h_x != 0 && apply_Sx(edapply(f, getval(h_x, x1)), hs, j, x1)
+                    h_y != 0 && apply_Sy(edapply(f, getval(h_y, x1)), hs, j, x1)
+                    h_z != 0 && apply_Sz(edapply(f, getval(h_z, x1)), hs, j, x1)
+                end
             end
         end
 
@@ -203,8 +205,10 @@ function spin_half_hamiltonian(;
         # as well!
         if J1_xy != 0 || J1_z != 0
             neighbors(hs.lattice) do x1, x2, wrap
-                J1_xy != 0 && apply_SxSx_SySy(edapply(f, J1_xy), hs, j, x1, x2)
-                J1_z != 0 && apply_SzSz(edapply(f, J1_z), hs, j, x1, x2)
+                if sitefilter(x1) && sitefilter(x2)
+                    J1_xy != 0 && apply_SxSx_SySy(edapply(f, J1_xy), hs, j, x1, x2)
+                    J1_z != 0 && apply_SzSz(edapply(f, J1_z), hs, j, x1, x2)
+                end
             end
         end
 
@@ -212,12 +216,15 @@ function spin_half_hamiltonian(;
         # as well!
         if J2_xy != 0 || J2_z != 0
             neighbors(hs.lattice, Val{2}) do x1, x2, wrap
-                J2_xy != 0 && apply_SxSx_SySy(edapply(f, J2_xy), hs, j, x1, x2)
-                J2_z != 0 && apply_SzSz(edapply(f, J2_z), hs, j, x1, x2)
+                if sitefilter(x1) && sitefilter(x2)
+                    J2_xy != 0 && apply_SxSx_SySy(edapply(f, J2_xy), hs, j, x1, x2)
+                    J2_z != 0 && apply_SzSz(edapply(f, J2_z), hs, j, x1, x2)
+                end
             end
         end
 
         if ϵ_total_spin != 0
+            @assert all(sitefilter, 1:length(hs.lattice)) # XXX
             apply_total_spin_operator(edapply(f, ϵ_total_spin), hs, j)
         end
 

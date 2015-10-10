@@ -1,7 +1,9 @@
 # Test RepresentativeStateTable and DiagonalizationSector with spin flip
 # symmetry
 #
-# Also tests entanglement entropy stuff.
+# Also tests entanglement entropy stuff, expectation value of operators in the
+# momentum basis, and use of sitefilter to restrict the hamiltonian to a
+# subsystem.
 let
     L = 8
     hs = SpinHalfHilbertSpace(ChainLattice([L]))
@@ -16,6 +18,12 @@ let
     my_operator = (apply_SpSm, 1, 3)
     full_op = operator_matrix(hs, my_operator...)
 
+    # FIXME: we should really test this using a Hamiltonian with more terms
+    # (i.e. not just J1)
+    tracer3 = Tracer(hs, 1:3)
+    lattice_A_3 = ChainLattice([3], diagm([0]))
+    subsystem3_H_A = [operator_matrix(SpinHalfHilbertSpace(lattice_A_3, ts.indexer_A), apply_hamiltonian) for ts in tracer3.sectors]
+
     @test diagsizes(Tracer(hs, 1:4)) == @compat Dict{Int,Int}(1=>2,4=>2,6=>1)
 
     processed_length = 0
@@ -25,6 +33,7 @@ let
             processed_length += length(diagsect)
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
             reduced_op = construct_reduced_operator(diagsect, my_operator...)
+            reduced_H_A_3 = construct_reduced_operator(diagsect, apply_hamiltonian, siteidx -> siteidx in 1:3)
             fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact[:values], fact[:vectors]
             for i in 1:length(evals)
@@ -38,6 +47,16 @@ let
                 @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
 
                 @test_approx_eq_eps dot(ψ, full_op * ψ) dot(evec, reduced_op * evec) 1e-10
+
+                let
+                    # FIXME: could use a higher level abstraction for this pattern!
+                    exv1 = mapreduce(+, 1:length(tracer3.sectors)) do sect
+                        ρ_A = ExactDiag.construct_ρ_A_block(tracer3.sectors[sect], ψ)
+                        vecdot(ρ_A', subsystem3_H_A[sect]) # trace product
+                    end
+                    exv2 = dot(evec, reduced_H_A_3 * evec)
+                    @test_approx_eq_eps exv1 exv2 1e-10
+                end
 
                 if i == 1
                     for L_A in 0:div(L, 2)

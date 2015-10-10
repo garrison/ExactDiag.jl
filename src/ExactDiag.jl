@@ -174,6 +174,8 @@ export
     DiagonalizationSector,
     apply_reduced_hamiltonian,
     construct_reduced_hamiltonian,
+    apply_reduced_operator,
+    construct_reduced_operator,
     construct_reduced_indexer,
     get_full_psi!,
     get_full_psi,

@@ -50,11 +50,6 @@ function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     rows = Int[]
     cols = Int[]
     vals = Complex128[]
-    if length(hs.indexer) > 1
-        sizehint!(rows, length(hs.indexer))
-        sizehint!(cols, length(hs.indexer))
-        sizehint!(vals, length(hs.indexer))
-    end
 
     j = 1
     while j <= length(hs.indexer)

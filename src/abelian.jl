@@ -417,13 +417,15 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 # XXX: rename these, and write down some algebra equations
                 alpha = val / norm;
                 representative_v[idx] = (reduced_i, alpha)
-                push!(coefficient_v, (idx, reduced_i, alpha))
+                push!(coefficient_v, (reduced_i, idx, alpha))
             end
         end
 
         n_discovered_indices == length(reduced_indexer) || throw(ArgumentError("The provided reduced_indexer contains states that do not exist in this DiagonalizationSector."))
 
-        sort!(coefficient_v) # should make get_full_psi() more cache-friendly
+        # This is necessary for us to be able to perform a binary search using
+        # searchsorted().
+        sort!(coefficient_v)
 
         return new(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
     end
@@ -461,6 +463,8 @@ length(diagsect::DiagonalizationSector) = length(diagsect.reduced_indexer)
 checkbounds(diagsect::DiagonalizationSector, i::Integer) = 0 < i <= length(diagsect) || throw(BoundsError())
 
 function apply_reduced_hamiltonian(f, diagsect::DiagonalizationSector, reduced_j::Integer)
+    # This, of course, assumes that the Hamiltonian commutes with any
+    # translations allowed by the diagsect.
     checkbounds(diagsect, reduced_j)
     j = diagsect.reduced_indexer[reduced_j]
     reduced_j_norm = diagsect.norm_v[reduced_j]
@@ -504,6 +508,42 @@ function construct_reduced_hamiltonian(diagsect::DiagonalizationSector)
     return hmat
 end
 
+function apply_reduced_operator(f, diagsect::DiagonalizationSector, reduced_j::Integer, apply_operator, args...)
+    # Unlike apply_reduced_hamiltonian, this does *not* assume that the
+    # operator commutes with the translation operators, so is therefore slower
+    # to execute.
+    checkbounds(diagsect, reduced_j)
+    for z in searchsorted(diagsect.coefficient_v, reduced_j, by=(a -> a[1]))
+        reduced_j_, j, alpha_j = diagsect.coefficient_v[z]
+        apply_operator(diagsect.state_table.hs, j, args...) do i, amplitude
+            reduced_i, alpha_i = diagsect.representative_v[i]
+            # If reduced_i is zero, this term has zero norm and is
+            # therefore not in our sector, so we ignore it.  This is
+            # expected!
+            if reduced_i != 0
+                @assert 0 < reduced_i <= length(diagsect)
+                f(reduced_i, amplitude * conj(alpha_i) * alpha_j)
+            end
+        end
+    end
+end
+
+function construct_reduced_operator(diagsect::DiagonalizationSector, apply_operator, args...)
+    s = length(diagsect)
+    rows = Int[]
+    cols = Int[]
+    vals = Complex128[]
+    for j in 1:s
+        apply_reduced_operator(diagsect, j, apply_operator, args...) do i, amplitude
+            push!(rows, i)
+            push!(cols, j)
+            push!(vals, amplitude)
+        end
+    end
+
+    return sparse(rows, cols, vals, s, s)
+end
+
 function construct_reduced_indexer(diagsect::DiagonalizationSector)
     original_indexer = diagsect.state_table.hs.indexer
     return IndexedArray{eltype(original_indexer)}([original_indexer[i] for i in diagsect.reduced_indexer])
@@ -513,7 +553,7 @@ function get_full_psi!(full_psi::Vector{Complex128}, diagsect::DiagonalizationSe
     length(reduced_psi) == length(diagsect) || throw(DimensionMismatch("reduced_psi has the wrong length"))
     length(full_psi) == length(diagsect.state_table.hs.indexer) || throw(DimensionMismatch("full_psi has the wrong length"))
     fill!(full_psi, zero(Complex128))
-    for (i, reduced_i, alpha) in diagsect.coefficient_v
+    for (reduced_i, i, alpha) in diagsect.coefficient_v
         full_psi[i] = reduced_psi[reduced_i] * alpha
     end
     return full_psi

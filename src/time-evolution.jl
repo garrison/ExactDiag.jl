@@ -78,7 +78,7 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
                 A_mul_B!(momentum_state, reduced_eigenstates, time_evolved_sector)
 
                 # Move back to position basis
-                for (i, reduced_i, alpha) in diagsect.coefficient_v
+                for (reduced_i, i, alpha) in diagsect.coefficient_v
                     output_states[i, t_i] += momentum_state[reduced_i] * alpha
                 end
             end

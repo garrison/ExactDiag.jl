@@ -13,6 +13,9 @@ let
 
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
+    my_operator = (apply_SpSm, 1, 3)
+    full_op = operator_matrix(hs, my_operator...)
+
     @test diagsizes(Tracer(hs, 1:4)) == @compat Dict{Int,Int}(1=>2,4=>2,6=>1)
 
     processed_length = 0
@@ -21,6 +24,7 @@ let
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             processed_length += length(diagsect)
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            reduced_op = construct_reduced_operator(diagsect, my_operator...)
             fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact[:values], fact[:vectors]
             for i in 1:length(evals)
@@ -32,6 +36,8 @@ let
                 @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, ψ) 0 1e-8
                 check_eigenstate(full_ham, eval, ψ)
                 @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
+
+                @test_approx_eq_eps dot(ψ, full_op * ψ) dot(evec, reduced_op * evec) 1e-10
 
                 if i == 1
                     for L_A in 0:div(L, 2)

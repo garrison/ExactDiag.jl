@@ -1,8 +1,62 @@
-# NOTE: We assume we only have enough memory to load one momentum
-# sector of the diagonalized Hamiltonian into memory at a time.  We
-# therefore make two passes over all the momenta: once when
-# constructing the original state in the energy basis, and again when
-# moving the time evolved states back to the position basis.
+# NOTE: We want to load only (part of) one momentum sector of the diagonalized
+# Hamiltonian into memory at a time.  We therefore make two passes over all the
+# momenta: once when constructing the original state in the energy basis, and
+# again when moving the time evolved states back to the position basis.
+#
+# (FIXME: Actually, it is almost certainly possible to do time evolution using
+# just a single pass over the momentum eigenstates, though this may involve
+# giving up some flexibility.  Also, for systems that have time-reversal
+# invariant and invariant under k <-> -k, we should be able to load eigenstates
+# corresponding to only half the Brillouin zone.)
+
+# Implementation of matrix multiplication for JldDataset.  We load one column
+# at a time since the matrix is stored in column-major form.  See discussion at
+# https://groups.google.com/d/msg/julia-users/cEHmqsMLX5c/NXREyAsVBwAJ
+
+function my_Ac_mul_B(a::JLD.JldDataset, b::Matrix)
+    K = size(b, 2)
+    M = size(a, 2)
+    N = size(a, 1)
+    N == size(b, 1) || throw(DimensionMismatch())
+    rv = zeros(eltype(b), M, K) # XXX: would be better to use promote_type. see https://github.com/JuliaLang/JLD.jl/issues/28
+    for j in 1:M
+        col = a[:,j]
+        for k in 1:K
+            @simd for i in 1:N
+                # NOTE: col[i,1] is necessary due to
+                # https://github.com/JuliaLang/HDF5.jl/issues/267
+                @inbounds rv[j,k] += conj(col[i,1]) * b[i,k]
+            end
+        end
+    end
+    return rv
+end
+
+function my_A_mul_B!(c::Matrix, a::JLD.JldDataset, b::Matrix)
+    @assert c !== b
+    K = size(b, 2)
+    M = size(a, 1)
+    N = size(a, 2)
+    size(b, 1) == N || throw(DimensionMismatch())
+    size(c) == (M, K) || throw(DimensionMismatch())
+    fill!(c, zero(eltype(c)))
+    for j in 1:N
+        col = a[:,j]
+        for k in 1:K
+            @simd for i in 1:M
+                # NOTE: col[i,1] is necessary due to
+                # https://github.com/JuliaLang/HDF5.jl/issues/267
+                @inbounds c[i,k] += b[j,k] * col[i,1]
+            end
+        end
+    end
+    return c
+end
+
+# These functions should behave as usual for all other data types (e.g. normal
+# vectors/matrices)
+my_Ac_mul_B(a, b) = Ac_mul_B(a, b)
+my_A_mul_B!(c, a, b) = A_mul_B!(c, a, b)
 
 function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat)
     basis_size = length(state_table.hs.indexer)
@@ -24,20 +78,24 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
             @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
             myrange = offset+1 : offset+length(reduced_indexer)
             diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
-            resize!(initial_momentum_state, length(diagsect))
 
+            initial_momentum_states = zeros(Complex128, length(diagsect), nstates)
+
+            # Project each state onto current momentum basis
+            #
+            # FIXME: actually, i should make a function in abelian.jl that does
+            # this (currently apply_reduced_hamiltonian is the only similar
+            # thing).  if so, make sure it fills with zeros first.
             for x in 1:nstates
-                # Project onto current momentum basis
-                fill!(initial_momentum_state, 0)
                 for (i, (reduced_i, alpha)) in enumerate(diagsect.representative_v)
                     if reduced_i != 0
-                        initial_momentum_state[reduced_i] += initial_states[i,x] * conj(alpha)
+                        initial_momentum_states[reduced_i, x] += initial_states[i, x] * conj(alpha)
                     end
                 end
-
-                # Transform to energy basis
-                initial_energy_states[myrange,x] = Ac_mul_B(reduced_eigenstates, initial_momentum_state)
             end
+
+            # Transform to energy basis
+            initial_energy_states[myrange,:] = my_Ac_mul_B(reduced_eigenstates, initial_momentum_states)
 
             append!(all_energies, reduced_energies)
 
@@ -61,25 +119,29 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
     ###
     output_states = zeros(Complex128, basis_size, length(time_steps))
     offset = 0
-    momentum_state = Complex128[]
     for sector_index in 1:state_table.sector_count
         for momentum_index in 1:nmomenta(state_table.hs.lattice)
             reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
             @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
-            myrange = offset+1 : offset+length(reduced_indexer)
             diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
-            resize!(momentum_state, length(diagsect))
+
+            momentum_states = Array(Complex128, length(diagsect), length(time_steps))
+            time_evolved_sector = Array(Complex128, length(diagsect), length(time_steps))
 
             for (t_i, t) in enumerate(time_steps)
                 # Time evolve
-                time_evolved_sector = initial_energy_state[myrange] .* exp(-im * t * reduced_energies)
+                for i in 1:length(reduced_indexer)
+                    time_evolved_sector[i, t_i] = initial_energy_state[offset + i] * exp(-im * reduced_energies[i] * t)
+                end
+            end
 
-                # Move back to momentum basis
-                A_mul_B!(momentum_state, reduced_eigenstates, time_evolved_sector)
+            # Move back to momentum basis
+            my_A_mul_B!(momentum_states, reduced_eigenstates, time_evolved_sector)
 
+            for (t_i, t) in enumerate(time_steps)
                 # Move back to position basis
                 for (reduced_i, i, alpha) in diagsect.coefficient_v
-                    output_states[i, t_i] += momentum_state[reduced_i] * alpha
+                    output_states[i, t_i] += momentum_states[reduced_i, t_i] * alpha
                 end
             end
 

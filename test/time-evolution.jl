@@ -80,5 +80,11 @@ let
                 @test_approx_eq output_states output_states_jld
             end
         end
+
+        # Test multiple initial states
+        let output_states2 = time_evolve(calculate_momentum_sector, rst, [initial_state (im * initial_state)], time_steps)
+            @test_approx_eq output_states2[:, :, 1] output_states
+            @test_approx_eq output_states2[:, :, 2] (im * output_states)
+        end
     end
 end

@@ -108,16 +108,16 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     return initial_energy_states, all_energies
 end
 
-function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_state::Vector, time_steps::AbstractVector{TimeType})
+function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_states::VecOrMat, time_steps::AbstractVector{TimeType})
     basis_size = length(state_table.hs.indexer)
-    if size(initial_energy_state, 1) != basis_size
+    if size(initial_energy_states, 1) != basis_size
         throw(ArgumentError("Initial energy state must match indexer size"))
     end
 
     ###
     # Time evolve and move back to position basis
     ###
-    output_states = zeros(Complex128, basis_size, length(time_steps))
+    output_states = zeros(Complex128, size(initial_energy_states, 1), length(time_steps), size(initial_energy_states)[2:end]...)
     offset = 0
     for sector_index in 1:state_table.sector_count
         for momentum_index in 1:nmomenta(state_table.hs.lattice)
@@ -128,20 +128,27 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
             momentum_states = Array(Complex128, length(diagsect), length(time_steps))
             time_evolved_sector = Array(Complex128, length(diagsect), length(time_steps))
 
-            for (t_i, t) in enumerate(time_steps)
-                # Time evolve
-                for i in 1:length(reduced_indexer)
-                    time_evolved_sector[i, t_i] = initial_energy_state[offset + i] * exp(-im * reduced_energies[i] * t)
+            # Loop through each initial state
+            for z in 1:size(initial_energy_states, 2)
+                for (t_i, t) in enumerate(time_steps)
+                    # Time evolve
+                    for i in 1:length(reduced_indexer)
+                        time_evolved_sector[i, t_i] = initial_energy_states[offset + i, z] * exp(-im * reduced_energies[i] * t)
+                    end
                 end
-            end
 
-            # Move back to momentum basis
-            my_A_mul_B!(momentum_states, reduced_eigenstates, time_evolved_sector)
+                # Move back to momentum basis
+                #
+                # FIXME: currently this means loading the reduced_eigenstates
+                # once for each initial state.  It would be great to be able to
+                # do it once entirely.
+                my_A_mul_B!(momentum_states, reduced_eigenstates, time_evolved_sector)
 
-            for (t_i, t) in enumerate(time_steps)
-                # Move back to position basis
-                for (reduced_i, i, alpha) in diagsect.coefficient_v
-                    output_states[i, t_i] += momentum_states[reduced_i, t_i] * alpha
+                for (t_i, t) in enumerate(time_steps)
+                    # Move back to position basis
+                    for (reduced_i, i, alpha) in diagsect.coefficient_v
+                        output_states[i, t_i, z] += momentum_states[reduced_i, t_i] * alpha
+                    end
                 end
             end
 
@@ -153,7 +160,7 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
     return output_states
 end
 
-function time_evolve(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_state::Vector, time_steps::AbstractVector{Float64})
-    ψ_e, = to_energy_basis(load_momentum_sector, state_table, initial_state)
+function time_evolve(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat, time_steps::AbstractVector{Float64})
+    ψ_e, = to_energy_basis(load_momentum_sector, state_table, initial_states)
     return time_evolve_to_position_basis(load_momentum_sector, state_table, ψ_e, time_steps)
 end

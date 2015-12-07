@@ -27,4 +27,5 @@ end
 @myinclude "hubbard.jl"
 @myinclude "abelian.jl"
 @myinclude "abelian-spinflip.jl"
+@myinclude "abelian-reflection.jl"
 @myinclude "time-evolution.jl"

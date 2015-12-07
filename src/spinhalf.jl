@@ -262,3 +262,9 @@ function spinflipη(hs::SpinHalfHilbertSpace, j::Integer)
     i = findfirst!(hs.indexer, [x $ 1 for x in state])
     return i, 0//1
 end
+
+function reflectionη(hs::SpinHalfHilbertSpace, j::Integer)
+    state = hs.indexer[j]
+    i = findfirst!(hs.indexer, reverse(state))
+    return i, 0//1
+end

@@ -132,6 +132,7 @@ include("time-evolution.jl")
 include("entropy.jl")
 
 spinflip_symmetry = (spinflipη, 2)
+reflection_symmetry = (reflectionη, 2)
 
 export
     HilbertSpace,
@@ -179,6 +180,7 @@ export
     Tracer,
     diagsizes,
     entanglement_entropy,
-    spinflip_symmetry
+    spinflip_symmetry,
+    reflection_symmetry
 
 end # module

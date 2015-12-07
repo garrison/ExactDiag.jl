@@ -18,8 +18,13 @@ debug = false
 @test_approx_eq ExactDiag.exp_2πiη(1//3) exp(2π/3 * im)
 @test_approx_eq ExactDiag.exp_2πiη(1//3) exp(2π/3 * im)
 
-include("spin_half.jl")
-include("hubbard.jl")
-include("abelian.jl")
-include("abelian-spinflip.jl")
-include("time-evolution.jl")
+macro myinclude(filename)
+    debug && println(filename)
+    include(filename)
+end
+
+@myinclude "spin_half.jl"
+@myinclude "hubbard.jl"
+@myinclude "abelian.jl"
+@myinclude "abelian-spinflip.jl"
+@myinclude "time-evolution.jl"

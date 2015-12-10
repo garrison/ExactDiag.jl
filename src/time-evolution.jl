@@ -58,7 +58,7 @@ end
 my_Ac_mul_B(a, b) = Ac_mul_B(a, b)
 my_A_mul_B!(c, a, b) = A_mul_B!(c, a, b)
 
-function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat)
+function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat; k_indices=1:nmomenta(state_table.hs.lattice))
     basis_size = length(state_table.hs.indexer)
     if size(initial_states, 1) != basis_size
         throw(ArgumentError("Initial state must match indexer size"))
@@ -73,7 +73,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     offset = 0
     initial_momentum_state = Complex128[]
     for sector_index in 1:state_table.sector_count
-        for momentum_index in 1:nmomenta(state_table.hs.lattice)
+        for momentum_index in k_indices
             reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
             @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
             myrange = offset+1 : offset+length(reduced_indexer)
@@ -108,7 +108,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     return initial_energy_states, all_energies
 end
 
-function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_states::VecOrMat, time_steps::AbstractVector{TimeType})
+function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_states::VecOrMat, time_steps::AbstractVector{TimeType}; k_indices=1:nmomenta(state_table.hs.lattice))
     basis_size = length(state_table.hs.indexer)
     if size(initial_energy_states, 1) != basis_size
         throw(ArgumentError("Initial energy state must match indexer size"))
@@ -120,7 +120,7 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
     output_states = zeros(Complex128, size(initial_energy_states, 1), length(time_steps), size(initial_energy_states)[2:end]...)
     offset = 0
     for sector_index in 1:state_table.sector_count
-        for momentum_index in 1:nmomenta(state_table.hs.lattice)
+        for momentum_index in k_indices
             reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
             @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
             diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
@@ -160,7 +160,7 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
     return output_states
 end
 
-function time_evolve(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat, time_steps::AbstractVector{Float64})
-    ψ_e, = to_energy_basis(load_momentum_sector, state_table, initial_states)
-    return time_evolve_to_position_basis(load_momentum_sector, state_table, ψ_e, time_steps)
+function time_evolve(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat, time_steps::AbstractVector{Float64}; kwargs...)
+    ψ_e, = to_energy_basis(load_momentum_sector, state_table, initial_states; kwargs...)
+    return time_evolve_to_position_basis(load_momentum_sector, state_table, ψ_e, time_steps; kwargs...)
 end

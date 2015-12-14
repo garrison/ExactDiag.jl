@@ -30,11 +30,12 @@ let
     time_steps = logspace(-1.5, 4, 41)
     push!(time_steps, 0)
 
-    function calculate_momentum_sector(sector_index, momentum_index)
+    function calculate_momentum_sector(func, sector_index, momentum_index)
         diagsect = DiagonalizationSector(rst, sector_index, momentum_index)
         reduced_hamiltonian = full(construct_reduced_hamiltonian(diagsect))
         fact = eigfact(Hermitian((reduced_hamiltonian + reduced_hamiltonian') / 2))
-        return construct_reduced_indexer(diagsect), fact[:values], fact[:vectors]
+        func(construct_reduced_indexer(diagsect), fact[:values], fact[:vectors])
+        nothing
     end
 
     # Test that the initial state can be either a Vector or Matrix, with the same results
@@ -61,19 +62,22 @@ let
             jldopen(fn, "w") do file
                 # Save each momentum sector
                 for momentum_index in 1:nmomenta(lattice)
-                    indexer, evals, evecs = calculate_momentum_sector(1, momentum_index)
-                    file["indexer_$(momentum_index)"] = indexer
-                    file["evals_$(momentum_index)"] = evals
-                    file["evecs_$(momentum_index)"] = evecs
+                    calculate_momentum_sector(1, momentum_index) do indexer, evals, evecs
+                        file["indexer_$(momentum_index)"] = indexer
+                        file["evals_$(momentum_index)"] = evals
+                        file["evecs_$(momentum_index)"] = evecs
+                        nothing
+                    end
                 end
 
                 # Perform time evolution using the saved `JldDataset`s
-                output_states_jld = time_evolve(rst, initial_state, time_steps) do sector_index, momentum_index
+                output_states_jld = time_evolve(rst, initial_state, time_steps) do func, sector_index, momentum_index
                     @test sector_index == 1
                     indexer = read(file["indexer_$(momentum_index)"])
                     evals = read(file["evals_$(momentum_index)"])
                     evecs = file["evecs_$(momentum_index)"]
-                    return indexer, evals, evecs
+                    func(indexer, evals, evecs)
+                    nothing
                 end
 
                 # Check the results

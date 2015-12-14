@@ -74,33 +74,35 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     initial_momentum_state = Complex128[]
     for sector_index in 1:state_table.sector_count
         for momentum_index in k_indices
-            reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
-            @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
-            myrange = offset+1 : offset+length(reduced_indexer)
-            diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
+            load_momentum_sector(sector_index, momentum_index) do reduced_indexer, reduced_energies, reduced_eigenstates
+                @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
+                myrange = offset+1 : offset+length(reduced_indexer)
+                diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
 
-            initial_momentum_states = zeros(Complex128, length(diagsect), nstates)
+                initial_momentum_states = zeros(Complex128, length(diagsect), nstates)
 
-            # Project each state onto current momentum basis
-            #
-            # FIXME: actually, i should make a function in abelian.jl that does
-            # this (currently apply_reduced_hamiltonian is the only similar
-            # thing).  if so, make sure it fills with zeros first.
-            for x in 1:nstates
-                for (i, (reduced_i, alpha)) in enumerate(diagsect.representative_v)
-                    if reduced_i != 0
-                        initial_momentum_states[reduced_i, x] += initial_states[i, x] * conj(alpha)
+                # Project each state onto current momentum basis
+                #
+                # FIXME: actually, i should make a function in abelian.jl that does
+                # this (currently apply_reduced_hamiltonian is the only similar
+                # thing).  if so, make sure it fills with zeros first.
+                for x in 1:nstates
+                    for (i, (reduced_i, alpha)) in enumerate(diagsect.representative_v)
+                        if reduced_i != 0
+                            initial_momentum_states[reduced_i, x] += initial_states[i, x] * conj(alpha)
+                        end
                     end
                 end
+
+                # Transform to energy basis
+                initial_energy_states[myrange,:] = my_Ac_mul_B(reduced_eigenstates, initial_momentum_states)
+
+                append!(all_energies, reduced_energies)
+
+                offset += length(reduced_indexer)
+                @assert length(all_energies) == offset
+                nothing
             end
-
-            # Transform to energy basis
-            initial_energy_states[myrange,:] = my_Ac_mul_B(reduced_eigenstates, initial_momentum_states)
-
-            append!(all_energies, reduced_energies)
-
-            offset += length(reduced_indexer)
-            @assert length(all_energies) == offset
         end
     end
     @assert offset == basis_size
@@ -121,38 +123,40 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
     offset = 0
     for sector_index in 1:state_table.sector_count
         for momentum_index in k_indices
-            reduced_indexer, reduced_energies, reduced_eigenstates = load_momentum_sector(sector_index, momentum_index)
-            @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
-            diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
+            load_momentum_sector(sector_index, momentum_index) do reduced_indexer, reduced_energies, reduced_eigenstates
+                @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
+                diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
 
-            momentum_states = Array(Complex128, length(diagsect), length(time_steps))
-            time_evolved_sector = Array(Complex128, length(diagsect), length(time_steps))
+                momentum_states = Array(Complex128, length(diagsect), length(time_steps))
+                time_evolved_sector = Array(Complex128, length(diagsect), length(time_steps))
 
-            # Loop through each initial state
-            for z in 1:size(initial_energy_states, 2)
-                for (t_i, t) in enumerate(time_steps)
-                    # Time evolve
-                    for i in 1:length(reduced_indexer)
-                        time_evolved_sector[i, t_i] = initial_energy_states[offset + i, z] * exp(-im * reduced_energies[i] * t)
+                # Loop through each initial state
+                for z in 1:size(initial_energy_states, 2)
+                    for (t_i, t) in enumerate(time_steps)
+                        # Time evolve
+                        for i in 1:length(reduced_indexer)
+                            time_evolved_sector[i, t_i] = initial_energy_states[offset + i, z] * exp(-im * reduced_energies[i] * t)
+                        end
+                    end
+
+                    # Move back to momentum basis
+                    #
+                    # FIXME: currently this means loading the reduced_eigenstates
+                    # once for each initial state.  It would be great to be able to
+                    # do it once entirely.
+                    my_A_mul_B!(momentum_states, reduced_eigenstates, time_evolved_sector)
+
+                    for (t_i, t) in enumerate(time_steps)
+                        # Move back to position basis
+                        for (reduced_i, i, alpha) in diagsect.coefficient_v
+                            output_states[i, t_i, z] += momentum_states[reduced_i, t_i] * alpha
+                        end
                     end
                 end
 
-                # Move back to momentum basis
-                #
-                # FIXME: currently this means loading the reduced_eigenstates
-                # once for each initial state.  It would be great to be able to
-                # do it once entirely.
-                my_A_mul_B!(momentum_states, reduced_eigenstates, time_evolved_sector)
-
-                for (t_i, t) in enumerate(time_steps)
-                    # Move back to position basis
-                    for (reduced_i, i, alpha) in diagsect.coefficient_v
-                        output_states[i, t_i, z] += momentum_states[reduced_i, t_i] * alpha
-                    end
-                end
+                offset += length(reduced_indexer)
+                nothing
             end
-
-            offset += length(reduced_indexer)
         end
     end
     @assert offset == basis_size

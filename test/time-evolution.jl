@@ -91,4 +91,37 @@ let
             @test_approx_eq output_states2[:, :, 2] (im * output_states)
         end
     end
+
+    # Try evolving a state whose support is only on a subset of momentum sectors
+    initial_state = zeros(Complex128, length(rst.hs.indexer))
+    initial_state[findfirst(hs.indexer, [0,1,0,1,0,1,0,1])] = 1
+
+    let output_states = time_evolve(calculate_momentum_sector, rst, initial_state, time_steps, k_indices=[1,5])
+        # Test the output is of the correct size
+        @test size(output_states) == (length(rst.hs.indexer), length(time_steps))
+
+        # Test that time-evolved norms are all (essentially) unity
+        for t_i in 1:length(time_steps)
+            @test_approx_eq norm(output_states[:, t_i]) 1
+        end
+
+        # Test that evolving for zero time returns that same wavefunction
+        @test_approx_eq initial_state output_states[:, end]
+
+        # Test against standard evolution
+        let output_states2 = time_evolve(calculate_momentum_sector, rst, initial_state, time_steps)
+            @test_approx_eq output_states2 output_states
+        end
+    end
+
+    # Try providing an incomplete subset of momentum sectors
+    let
+        ψ_e, = ExactDiag.to_energy_basis(calculate_momentum_sector, rst, initial_state, k_indices=[1])
+
+        # Test that the vector is the correct size
+        @test length(ψ_e) < length(rst.hs.indexer)
+
+        # Test that the norm is not unity.
+        @test_approx_eq norm(ψ_e) 1/sqrt(2)
+    end
 end

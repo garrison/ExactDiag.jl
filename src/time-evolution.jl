@@ -58,18 +58,33 @@ end
 my_Ac_mul_B(a, b) = Ac_mul_B(a, b)
 my_A_mul_B!(c, a, b) = A_mul_B!(c, a, b)
 
+function calculate_energy_basis_size(state_table::RepresentativeStateTable, k_indices)
+    if k_indices == 1:nmomenta(state_table.hs.lattice)
+        return length(state_table.hs.indexer)
+    end
+
+    energy_basis_size = 0
+    for sector_index in 1:state_table.sector_count
+        for momentum_index in k_indices
+            energy_basis_size += length(DiagonalizationSector(state_table, sector_index, momentum_index))
+        end
+    end
+    return energy_basis_size
+end
+
 function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat; k_indices=1:nmomenta(state_table.hs.lattice))
-    basis_size = length(state_table.hs.indexer)
-    if size(initial_states, 1) != basis_size
+    if size(initial_states, 1) != length(state_table.hs.indexer)
         throw(ArgumentError("Initial state must match indexer size"))
     end
     nstates = size(initial_states, 2)
 
+    energy_basis_size = calculate_energy_basis_size(state_table, k_indices)
+
     ###
     # Transform initial state to energy basis
     ###
-    initial_energy_states = Array(Complex128, size(initial_states)...)
-    all_energies = sizehint!(Float64[], basis_size)
+    initial_energy_states = Array(Complex128, energy_basis_size, size(initial_states)[2:end]...)
+    all_energies = sizehint!(Float64[], energy_basis_size)
     offset = 0
     initial_momentum_state = Complex128[]
     for sector_index in 1:state_table.sector_count
@@ -105,21 +120,22 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
             end
         end
     end
-    @assert offset == basis_size
+    @assert offset == energy_basis_size
 
     return initial_energy_states, all_energies
 end
 
 function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_states::VecOrMat, time_steps::AbstractVector{TimeType}; k_indices=1:nmomenta(state_table.hs.lattice))
-    basis_size = length(state_table.hs.indexer)
-    if size(initial_energy_states, 1) != basis_size
+    energy_basis_size = calculate_energy_basis_size(state_table, k_indices)
+    if size(initial_energy_states, 1) != energy_basis_size
         throw(ArgumentError("Initial energy state must match indexer size"))
     end
 
     ###
     # Time evolve and move back to position basis
     ###
-    output_states = zeros(Complex128, size(initial_energy_states, 1), length(time_steps), size(initial_energy_states)[2:end]...)
+    basis_size = length(state_table.hs.indexer)
+    output_states = zeros(Complex128, basis_size, length(time_steps), size(initial_energy_states)[2:end]...)
     offset = 0
     for sector_index in 1:state_table.sector_count
         for momentum_index in k_indices
@@ -159,7 +175,7 @@ function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Fun
             end
         end
     end
-    @assert offset == basis_size
+    @assert offset == energy_basis_size
 
     return output_states
 end

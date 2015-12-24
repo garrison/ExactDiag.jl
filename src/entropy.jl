@@ -59,8 +59,8 @@ immutable Tracer{StateType<:AbstractVector}
             @assert !isempty(remaining_B)
 
             # Find all states in the current sector
-            indexer_A = IndexedArray{StateType}()
-            indexer_B = IndexedArray{StateType}()
+            indexer_A_set = Set{StateType}()
+            indexer_B_set = Set{StateType}()
             let
                 idx_A_queue = Int[pop!(remaining_A)]
                 idx_B_queue = Int[]
@@ -68,7 +68,7 @@ immutable Tracer{StateType<:AbstractVector}
                     while !isempty(idx_A_queue)
                         idx_A = pop!(idx_A_queue)
                         @assert idx_A ∉ remaining_A
-                        push!(indexer_A, preliminary_indexer_A[idx_A])
+                        push!(indexer_A_set, preliminary_indexer_A[idx_A])
                         for idx_B in preliminary_by_A[idx_A]
                             if idx_B in remaining_B
                                 delete!(remaining_B, idx_B)
@@ -79,7 +79,7 @@ immutable Tracer{StateType<:AbstractVector}
                     while !isempty(idx_B_queue)
                         idx_B = pop!(idx_B_queue)
                         @assert idx_B ∉ remaining_B
-                        push!(indexer_B, preliminary_indexer_B[idx_B])
+                        push!(indexer_B_set, preliminary_indexer_B[idx_B])
                         for idx_A in preliminary_by_B[idx_B]
                             if idx_A in remaining_A
                                 delete!(remaining_A, idx_A)
@@ -89,6 +89,12 @@ immutable Tracer{StateType<:AbstractVector}
                     end
                 end
             end
+
+            # Sort things to be a bit more predictable
+            #
+            # XXX: This makes assumptions about StateType that should probably be moved elsewhere.
+            indexer_A = IndexedArray{StateType}(sort!(collect(indexer_A_set), by=(x -> (x...))))
+            indexer_B = IndexedArray{StateType}(sort!(collect(indexer_B_set), by=(x -> (x...))))
 
             # Construct by_A, by_B, and backmap
             backmap = @compat Tuple{Int, Int, Int}[]

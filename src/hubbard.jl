@@ -234,7 +234,7 @@ function hubbard_hamiltonian(;
             end
             if J_z != 0
                 # S^z_i S^z_j
-                diagonal += 0.25 * J_z * get_sigma_z(state[x]) * get_sigma_z(state[x_r])
+                diagonal += 0.25 * J_z * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
             end
         end
 

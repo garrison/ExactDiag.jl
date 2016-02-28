@@ -159,9 +159,9 @@ function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
 end
 
 function spin_half_hamiltonian(;
-                               h_x::@compat(Union{Real,Vector})=0.0,
-                               h_y::@compat(Union{Real,Vector})=0.0,
-                               h_z::@compat(Union{Real,Vector})=0.0,
+                               h_x::Union{Real,Vector}=0.0,
+                               h_y::Union{Real,Vector}=0.0,
+                               h_z::Union{Real,Vector}=0.0,
                                J1_xy::Real=0.0,
                                J1_z::Real=0.0,
                                J2_xy::Real=0.0,

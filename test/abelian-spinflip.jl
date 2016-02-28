@@ -24,7 +24,7 @@ let
     lattice_A_3 = ChainLattice([3], diagm([0]))
     subsystem3_H_A = [operator_matrix(SpinHalfHilbertSpace(lattice_A_3, ts.indexer_A), apply_hamiltonian) for ts in tracer3.sectors]
 
-    @test diagsizes(Tracer(hs, 1:4)) == @compat Dict{Int,Int}(1=>2,4=>2,6=>1)
+    @test diagsizes(Tracer(hs, 1:4)) == Dict{Int,Int}(1=>2,4=>2,6=>1)
 
     processed_length = 0
     for k_idx in 1:nmomenta(hs.lattice)

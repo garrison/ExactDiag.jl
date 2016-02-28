@@ -38,9 +38,9 @@ type StateInfo
     # The results of translating in each direction, as well as results of any
     # additional symmetry operations provided.  The length of this vector is
     # the number of dimensions plus the number of additional symmetries given.
-    transformation_results::Vector{@compat Tuple{Int, Rational{Int}}}
+    transformation_results::Vector{Tuple{Int, Rational{Int}}}
 
-    StateInfo() = new(0, 0, @compat(Tuple{Int, Rational{Int}}[]))
+    StateInfo() = new(0, 0, Tuple{Int, Rational{Int}}[])
 end
 
 # It's the job of this class to know all the representative states (and what
@@ -91,7 +91,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     additional_symmetry_periods::Vector{Int}
 
     function RepresentativeStateTable(hs::HilbertSpaceType, apply_hamiltonian::Function,
-                                      additional_symmetries::Vector{@compat Tuple{Function,Int}}=(@compat Tuple{Function,Int})[],
+                                      additional_symmetries::Vector{Tuple{Function,Int}}=Tuple{Function,Int}[],
                                       transformation_exponent_v::Vector{Int}=Int[])
         for (symm_func, symm_period) in additional_symmetries
             @assert symm_period > 0
@@ -104,7 +104,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
         if isempty(transformation_exponent_v)
             # transformation by a single step allowed in each direction that is
             # not OBC
-            transformation_exponent_v = [@compat Int(i > d || repeater(hs.lattice)[i,i] != 0) for i in 1:dd]
+            transformation_exponent_v = [Int(i > d || repeater(hs.lattice)[i,i] != 0) for i in 1:dd]
         end
 
         @assert length(transformation_exponent_v) == dd
@@ -223,7 +223,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{@compat Tuple{Function,Int}}=(@compat Tuple{Function,Int})[]) =
+RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{Function,Int}}=Tuple{Function,Int}[]) =
     RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian, additional_symmetries)
 
 # At times we will want to be able to specify which states are used as the
@@ -320,10 +320,10 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
 
     # Allows us to get the representative state \ket{r} and its
     # coefficient given a state \ket{s} (some element of \ket{r_k}).
-    representative_v::Vector{@compat Tuple{Int, Complex128}}
+    representative_v::Vector{Tuple{Int, Complex128}}
 
     # Allows us to explicitly construct \ket{r_k} from \ket{r}
-    coefficient_v::Vector{@compat Tuple{Int, Int, Complex128}}
+    coefficient_v::Vector{Tuple{Int, Int, Complex128}}
 
     function DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpaceType},
                                    sector_index::Int,
@@ -337,8 +337,8 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
         @assert all(0 .<= additional_symmetry_indices .< state_table.additional_symmetry_periods)
 
         norm_v = Float64[]
-        representative_v = @compat Tuple{Int, Complex128}[(0, 0.0im) for i in 1:length(state_table.hs.indexer)]
-        coefficient_v = @compat Tuple{Int, Int, Complex128}[]
+        representative_v = Tuple{Int, Complex128}[(0, 0.0im) for i in 1:length(state_table.hs.indexer)]
+        coefficient_v = Tuple{Int, Int, Complex128}[]
 
         d = ndimensions(state_table.hs.lattice)
         dd = d + length(state_table.additional_symmetry_periods)

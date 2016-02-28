@@ -12,11 +12,11 @@ immutable TracerSector{StateType<:AbstractVector}
     # by_B[idx_B] contains a list of (idx_A, idx)
     #
     # NOTE: idx is the index of the full state in the original indexer
-    by_A::Vector{Vector{@compat Tuple{Int,Int}}}
-    by_B::Vector{Vector{@compat Tuple{Int,Int}}}
+    by_A::Vector{Vector{Tuple{Int,Int}}}
+    by_B::Vector{Vector{Tuple{Int,Int}}}
 
     # (idx, idx_A, idx_B) for each state in the sector
-    backmap::Vector{@compat Tuple{Int, Int, Int}}
+    backmap::Vector{Tuple{Int, Int, Int}}
 
     # To make sure any wavefunctions ψ we are given have the correct
     # number of elements
@@ -38,7 +38,7 @@ immutable Tracer{StateType<:AbstractVector}
         # B, without regard to sector
         preliminary_indexer_A = IndexedArray{StateType}()
         preliminary_indexer_B = IndexedArray{StateType}()
-        preliminary_backmap = @compat Tuple{Int, Int}[]
+        preliminary_backmap = Tuple{Int, Int}[]
         for state in basis
             idx_A = findfirst!(preliminary_indexer_A, state[sites_A])
             idx_B = findfirst!(preliminary_indexer_B, state[sites_B])
@@ -97,7 +97,7 @@ immutable Tracer{StateType<:AbstractVector}
             indexer_B = IndexedArray{StateType}(sort!(collect(indexer_B_set), by=(x -> (x...))))
 
             # Construct by_A, by_B, and backmap
-            backmap = @compat Tuple{Int, Int, Int}[]
+            backmap = Tuple{Int, Int, Int}[]
             for (idx, state) in enumerate(basis)
                 if state[sites_A] ∉ indexer_A
                     continue
@@ -106,8 +106,8 @@ immutable Tracer{StateType<:AbstractVector}
                 idx_B = findfirst(indexer_B, state[sites_B])
                 push!(backmap, (idx, idx_A, idx_B))
             end
-            by_A = [@compat Tuple{Int, Int}[] for i in 1:length(indexer_A)]
-            by_B = [@compat Tuple{Int, Int}[] for i in 1:length(indexer_B)]
+            by_A = [Tuple{Int, Int}[] for i in 1:length(indexer_A)]
+            by_B = [Tuple{Int, Int}[] for i in 1:length(indexer_B)]
             for (idx, idx_A, idx_B) in backmap
                 push!(by_A[idx_A], (idx_B, idx))
                 push!(by_B[idx_B], (idx_A, idx))

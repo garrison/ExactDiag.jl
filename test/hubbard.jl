@@ -200,7 +200,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
 
     # Determine the energy of each possible band filling
     @assert isbravais(lattice)
-    band_fillings = @compat Dict{Vector{Rational{Int}}, Vector{Tuple{Float64, Vector{Int}, Vector{Int}}}}()
+    band_fillings = Dict{Vector{Rational{Int}}, Vector{Tuple{Float64, Vector{Int}, Vector{Int}}}}()
     for filled_k_up_indices in combinations(1:nmomenta(lattice), N_up)
         for filled_k_dn_indices in combinations(1:nmomenta(lattice), N_dn)
             filled_orbitals = map(k_idx -> momentum(lattice, k_idx),
@@ -208,7 +208,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
             energy = mapreduce(ϵ, +, filled_orbitals)
             total_momentum = rem(reduce(+, filled_orbitals), 1)
             v = get!(band_fillings, total_momentum) do
-                @compat Tuple{Float64, Vector{Int}, Vector{Int}}[]
+                Tuple{Float64, Vector{Int}, Vector{Int}}[]
             end
             push!(v, (energy, filled_k_up_indices, filled_k_dn_indices))
         end

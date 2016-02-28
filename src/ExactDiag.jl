@@ -6,7 +6,6 @@ VERSION < v"0.4-" && using Docile
 
 using Bravais
 using IndexedArrays
-using Compat
 using SortingAlgorithms
 using JLD
 
@@ -102,11 +101,11 @@ check_eigenstate(args...; tolerance=1e-5) = abs(eigenstate_badness(args...)) < t
 immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
     direction::Int
-    cache::Vector{@compat Tuple{Int,Rational{Int}}}
+    cache::Vector{Tuple{Int,Rational{Int}}}
 
     function HilbertSpaceTranslationCache(hs, direction)
         ltrc = LatticeTranslationCache(hs.lattice, direction)
-        cache = @compat Tuple{Int,Rational{Int}}[]
+        cache = Tuple{Int,Rational{Int}}[]
         @assert length(hs.indexer) > 0
         sizehint!(cache, length(hs.indexer))
         j = 0 # length(cache)
@@ -114,7 +113,7 @@ immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
             j += 1
             push!(cache, translateη(hs, ltrc, j))
         end
-        new(hs, @compat(Int(direction)), cache)
+        new(hs, Int(direction), cache)
     end
 end
 

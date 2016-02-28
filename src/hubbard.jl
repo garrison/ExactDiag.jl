@@ -354,3 +354,10 @@ function spinflipη(hs::HubbardHilbertSpace, j::Integer)
 
     return i, η
 end
+
+function particleholeη(hs::HubbardHilbertSpace, j::Integer)
+    state = hs.indexer[j]
+    i = findfirst!(hs.indexer, [x $ 3 for x in state])
+    # FIXME: η?
+    return i, 0//1
+end

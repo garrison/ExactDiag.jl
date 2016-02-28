@@ -28,19 +28,23 @@ function test_1d_hubbard_hamiltonian(lattice)
 end
 test_1d_hubbard_hamiltonian(ChainLattice([8]))
 
-# With abelian symmetries
-let L = 4
-    hs = HubbardHilbertSpace(ChainLattice([L]))
+# With abelian symmetries (this one always assumes half filling)
+function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{Function,Int}})
+    L = length(lattice)
+    hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, div(L, 2), div(L, 2))
     apply_hamiltonian = hubbard_hamiltonian(t=1, U=2)
-    rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
+    rst = RepresentativeStateTable(hs, apply_hamiltonian, symmetries)
 
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
     processed_length = 0
+    symmbounds = (repeat([2], inner=[length(symmetries)])...)
     for k_idx in 1:nmomenta(hs.lattice)
-        for spinflip_idx in 0:1
-            diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
+        for symm_idx in 1:2*length(symmetries)
+            symm = [ind2sub(symmbounds, symm_idx)...] - 1
+            diagsect = DiagonalizationSector(rst, 1, k_idx, symm)
+            length(diagsect) != 0 || continue
             processed_length += length(diagsect)
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
             @test vecnorm(reduced_ham - reduced_ham') < 1e-5
@@ -50,25 +54,30 @@ let L = 4
                 eval = evals[i]
                 evec = evecs[:,i]
                 ψ = get_full_psi(diagsect, evec)
-
                 @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
-                @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, ψ) 0 1e-8
-                check_eigenstate(full_ham, eval, ψ)
-                @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
-
-                if i == 1
-                    for L_A in 0:div(L, 2)
-                        ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
-                        ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
-                        # FIXME: test against known results
-                        @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
-                    end
-                end
             end
-            #println("$L\t$(k_idx-1)\t$(1-2*spinflip_idx)\t$(evals[1])")
         end
     end
     @test processed_length == length(hs.indexer)
+end
+
+let
+    for L in 2:2:6
+        # Take advantage of spinflip symmetry
+        test_1d_hubbard_symmetries(ChainLattice([L]), [spinflip_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [spinflip_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [spinflip_symmetry])
+
+        # Particle-hole symmetry
+        test_1d_hubbard_symmetries(ChainLattice([L]), [particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [particlehole_symmetry])
+
+        # Spinflip + particle-hole
+        test_1d_hubbard_symmetries(ChainLattice([L]), [spinflip_symmetry, particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [spinflip_symmetry, particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [spinflip_symmetry, particlehole_symmetry])
+    end
 end
 
 let
@@ -288,7 +297,7 @@ let
     #test_slater_determinants(TriangularLattice([2, 3], diagm([2,3]), [1//2, 1//3]), 3, 3)
 end
 
-function test_1d_hubbard_abelian_spinflip(lattice, N_updn)
+function test_1d_hubbard_abelian_spinflip(lattice, N_updn) # does not assume half filling
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, N_updn, N_updn)
     apply_hamiltonian = hubbard_hamiltonian(t=1, U=2)

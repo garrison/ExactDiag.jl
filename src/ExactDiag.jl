@@ -133,6 +133,7 @@ include("entropy.jl")
 
 spinflip_symmetry = (spinflipη, 2)
 reflection_symmetry = (reflectionη, 2)
+particlehole_symmetry = (particleholeη, 2)
 
 export
     HilbertSpace,
@@ -181,6 +182,7 @@ export
     diagsizes,
     entanglement_entropy,
     spinflip_symmetry,
-    reflection_symmetry
+    reflection_symmetry,
+    particlehole_symmetry
 
 end # module

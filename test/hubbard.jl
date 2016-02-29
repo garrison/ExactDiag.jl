@@ -66,6 +66,7 @@ let
         # Take advantage of spinflip symmetry
         test_1d_hubbard_symmetries(ChainLattice([L]), [spinflip_symmetry])
         test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [spinflip_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//3]), [spinflip_symmetry])
         test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [spinflip_symmetry])
 
         # Particle-hole symmetry

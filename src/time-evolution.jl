@@ -59,7 +59,7 @@ my_Ac_mul_B(a, b) = Ac_mul_B(a, b)
 my_A_mul_B!(c, a, b) = A_mul_B!(c, a, b)
 
 function calculate_energy_basis_size(state_table::RepresentativeStateTable, k_indices)
-    if k_indices == 1:nmomenta(state_table.hs.lattice)
+    if k_indices == eachmomentumindex(state_table.hs.lattice)
         return length(state_table.hs.indexer)
     end
 
@@ -72,7 +72,7 @@ function calculate_energy_basis_size(state_table::RepresentativeStateTable, k_in
     return energy_basis_size
 end
 
-function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat; k_indices=1:nmomenta(state_table.hs.lattice))
+function to_energy_basis(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_states::VecOrMat; k_indices=eachmomentumindex(state_table.hs.lattice))
     if size(initial_states, 1) != length(state_table.hs.indexer)
         throw(ArgumentError("Initial state must match indexer size"))
     end
@@ -125,7 +125,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     return initial_energy_states, all_energies
 end
 
-function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_states::VecOrMat, time_steps::AbstractVector{TimeType}; k_indices=1:nmomenta(state_table.hs.lattice))
+function time_evolve_to_position_basis{TimeType<:Real}(load_momentum_sector::Function, state_table::RepresentativeStateTable, initial_energy_states::VecOrMat, time_steps::AbstractVector{TimeType}; k_indices=eachmomentumindex(state_table.hs.lattice))
     energy_basis_size = calculate_energy_basis_size(state_table, k_indices)
     if size(initial_energy_states, 1) != energy_basis_size
         throw(ArgumentError("Initial energy state must match indexer size"))

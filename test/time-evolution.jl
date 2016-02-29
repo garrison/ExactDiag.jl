@@ -61,7 +61,7 @@ let
             fn = joinpath(tmpdir, "exactdiag-evolve.jld")
             jldopen(fn, "w") do file
                 # Save each momentum sector
-                for momentum_index in 1:nmomenta(lattice)
+                for momentum_index in eachmomentumindex(lattice)
                     calculate_momentum_sector(1, momentum_index) do indexer, evals, evecs
                         file["indexer_$(momentum_index)"] = indexer
                         file["evals_$(momentum_index)"] = evals

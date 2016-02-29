@@ -40,7 +40,7 @@ function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{Function,I
 
     processed_length = 0
     symmbounds = (repeat([2], inner=[length(symmetries)])...)
-    for k_idx in 1:nmomenta(hs.lattice)
+    for k_idx in eachmomentumindex(hs.lattice)
         for symm_idx in 1:2*length(symmetries)
             symm = [ind2sub(symmbounds, symm_idx)...] - 1
             diagsect = DiagonalizationSector(rst, 1, k_idx, symm)
@@ -119,7 +119,7 @@ let
     # Find the ground state wavefunction
     local gs_eval, gs_evec
     gs_eval = maxintfloat(Float64) # fixme
-    for k_idx in 1:nmomenta(hs.lattice)
+    for k_idx in eachmomentumindex(hs.lattice)
         for spinflip_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue
@@ -202,8 +202,8 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     # Determine the energy of each possible band filling
     @assert isbravais(lattice)
     band_fillings = Dict{Vector{Rational{Int}}, Vector{Tuple{Float64, Vector{Int}, Vector{Int}}}}()
-    for filled_k_up_indices in combinations(1:nmomenta(lattice), N_up)
-        for filled_k_dn_indices in combinations(1:nmomenta(lattice), N_dn)
+    for filled_k_up_indices in combinations(eachmomentumindex(lattice), N_up)
+        for filled_k_dn_indices in combinations(eachmomentumindex(lattice), N_dn)
             filled_orbitals = map(k_idx -> momentum(lattice, k_idx),
                                   [filled_k_up_indices; filled_k_dn_indices])
             energy = mapreduce(ϵ, +, filled_orbitals)
@@ -222,7 +222,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     end
     @assert mapreduce(length, +, values(band_fillings)) == length(hs.indexer)
 
-    total_momenta = [rem(momentum(lattice, k_idx, N_up + N_dn), 1) for k_idx in 1:nmomenta(lattice)]
+    total_momenta = [rem(momentum(lattice, k_idx, N_up + N_dn), 1) for k_idx in eachmomentumindex(lattice)]
 
     root_V = sqrt(length(lattice))
 
@@ -247,7 +247,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     end
 
     # Diagonalize each momentum sector, and check the energies and overlaps
-    for k_idx in 1:nmomenta(hs.lattice)
+    for k_idx in eachmomentumindex(hs.lattice)
         slater_energies = [energy for (energy, ku, kd) in band_fillings[total_momenta[k_idx]]]
         diagsect = DiagonalizationSector(rst, 1, k_idx)
         length(diagsect) != 0 || continue
@@ -307,7 +307,7 @@ function test_1d_hubbard_abelian_spinflip(lattice, N_updn) # does not assume hal
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
     processed_length = 0
-    for k_idx in 1:nmomenta(hs.lattice)
+    for k_idx in eachmomentumindex(hs.lattice)
         for spinflip_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue

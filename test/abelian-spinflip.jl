@@ -27,7 +27,7 @@ let
     @test diagsizes(Tracer(hs, 1:4)) == Dict{Int,Int}(1=>2,4=>2,6=>1)
 
     processed_length = 0
-    for k_idx in 1:nmomenta(hs.lattice)
+    for k_idx in eachmomentumindex(hs.lattice)
         for spinflip_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             processed_length += length(diagsect)

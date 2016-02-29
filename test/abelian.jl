@@ -15,7 +15,7 @@ let
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
     processed_length = 0
-    for k_idx in 1:nmomenta(lattice)
+    for k_idx in eachmomentumindex(lattice)
         diagsect = DiagonalizationSector(rst, 1, k_idx)
         processed_length += length(diagsect)
         reduced_ham = construct_reduced_hamiltonian(diagsect)

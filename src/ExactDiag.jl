@@ -165,6 +165,7 @@ export
     apply_SmSp,
     apply_SpSm_SmSp,
     HubbardHilbertSpace,
+    HubbardParameters,
     hubbard_hamiltonian,
     spinflipη,
     RepresentativeStateTable,

@@ -133,21 +133,38 @@ function apply_total_pseudospin_operator(f, hs::HubbardHilbertSpace, s_j::Intege
     nothing
 end
 
-function hubbard_hamiltonian(;
-                             t::Real=0.0,
-                             U::Real=0.0,
-                             V::Real=0.0,
-                             W::Real=0.0,
-                             J::Real=0.0,
-                             J_xy::Real=0.0,
-                             J_z::Real=0.0,
-                             ϵ_total_spin::Real=0.0,
-                             ϵ_total_pseudospin::Real=0.0)
-    if J != 0
-        J_xy == J_z == 0 || throw(ArgumentError("If J is provided, J_xy and J_z must not be."))
-        J_xy = J_z = J
-    end
+immutable HubbardParameters
+    t::Float64
+    U::Float64
+    V::Float64
+    W::Float64
+    J_xy::Float64
+    J_z::Float64
+    ϵ_total_spin::Float64
+    ϵ_total_pseudospin::Float64
 
+    function HubbardParameters(;
+                               t::Real=0.0,
+                               U::Real=0.0,
+                               V::Real=0.0,
+                               W::Real=0.0,
+                               J::Real=0.0,
+                               J_xy::Real=0.0,
+                               J_z::Real=0.0,
+                               ϵ_total_spin::Real=0.0,
+                               ϵ_total_pseudospin::Real=0.0)
+        if J != 0
+            J_xy == J_z == 0 || throw(ArgumentError("If J is provided, J_xy and J_z must not be."))
+            J_xy = J_z = J
+        end
+
+        new(t, U, V, W, J_xy, J_z, ϵ_total_spin, ϵ_total_pseudospin)
+    end
+end
+
+hubbard_hamiltonian(; kwargs...) = hubbard_hamiltonian(HubbardParameters(; kwargs...))
+
+function hubbard_hamiltonian(p::HubbardParameters)
     return function apply_hamiltonian(f, hs::HubbardHilbertSpace, s_j::Integer)
         state = hs.indexer[s_j]
         diagonal = 0.0
@@ -170,7 +187,7 @@ function hubbard_hamiltonian(;
                     other[x_r] -= b_up
                     other[x] += b_up
                     s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -t * x_r_up_phase * e_iθ)
+                    f(s_i, -p.t * x_r_up_phase * e_iθ)
                 end
             end
             if state[x] & b_up != 0
@@ -180,7 +197,7 @@ function hubbard_hamiltonian(;
                     other[x] -= b_up
                     other[x_r] += b_up
                     s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -t * x_r_up_phase * conj(e_iθ))
+                    f(s_i, -p.t * x_r_up_phase * conj(e_iθ))
                 end
             end
 
@@ -193,7 +210,7 @@ function hubbard_hamiltonian(;
                     other[x_r] -= b_dn
                     other[x] += b_dn
                     s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -t * x_r_dn_phase * e_iθ)
+                    f(s_i, -p.t * x_r_dn_phase * e_iθ)
                 end
             end
             if state[x] & b_dn != 0
@@ -203,25 +220,25 @@ function hubbard_hamiltonian(;
                     other[x] -= b_dn
                     other[x_r] += b_dn
                     s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -t * x_r_dn_phase * conj(e_iθ))
+                    f(s_i, -p.t * x_r_dn_phase * conj(e_iθ))
                 end
             end
 
             # Nearest neighbor repulsion "V"
-            if V != 0
+            if p.V != 0
                 c = get_charge(hs, state[x]) * get_charge(hs, state[x_r])
-                diagonal += V * c
+                diagonal += p.V * c
             end
 
             # Nearest neighbor doublon repulsion "W"
-            if W != 0
+            if p.W != 0
                 if (state[x] == 3 && state[x_r] == 3)
-                    diagonal += W
+                    diagonal += p.W
                 end
             end
 
             # exchange J
-            if J_xy != 0
+            if p.J_xy != 0
                 # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
                 if ((state[x] == 1 && state[x_r] == 2)
                     || (state[x] == 2 && state[x_r] == 1))
@@ -229,34 +246,34 @@ function hubbard_hamiltonian(;
                     other[x], other[x_r] = other[x_r], other[x]
                     s_i = findfirst!(hs.indexer, other)
                     # the minus sign comes from working through the site hops carefully.
-                    f(s_i, -0.5 * J_xy * x_r_up_phase * x_r_dn_phase)
+                    f(s_i, -0.5 * p.J_xy * x_r_up_phase * x_r_dn_phase)
                 end
             end
-            if J_z != 0
+            if p.J_z != 0
                 # S^z_i S^z_j
-                diagonal += 0.25 * J_z * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
+                diagonal += 0.25 * p.J_z * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
             end
         end
 
         # Hubbard U
-        if U != 0
+        if p.U != 0
             doubly_occupied_sites = 0
             for x in 1:length(hs.lattice)
                 if state[x] == 3
                     doubly_occupied_sites += 1
                 end
             end
-            diagonal += U * doubly_occupied_sites
+            diagonal += p.U * doubly_occupied_sites
         end
 
         # total spin term
-        if ϵ_total_spin != 0
-            apply_total_spin_operator(edapply(f, ϵ_total_spin), hs, s_j)
+        if p.ϵ_total_spin != 0
+            apply_total_spin_operator(edapply(f, p.ϵ_total_spin), hs, s_j)
         end
 
         # total pseudospin term
-        if ϵ_total_pseudospin != 0
-            apply_total_pseudospin_operator(edapply(f, ϵ_total_pseudospin), hs, s_j)
+        if p.ϵ_total_pseudospin != 0
+            apply_total_pseudospin_operator(edapply(f, p.ϵ_total_pseudospin), hs, s_j)
         end
 
         f(s_j, diagonal)

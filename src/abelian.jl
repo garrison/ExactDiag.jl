@@ -544,6 +544,18 @@ function construct_reduced_operator(diagsect::DiagonalizationSector, apply_opera
     return sparse(rows, cols, vals, s, s)
 end
 
+function construct_reduced_indexer(rst::RepresentativeStateTable)
+    # The typical use case for this function is to save precisely which states
+    # the RST had in it, so we can later reconstruct it.  This way, if the code
+    # later changes such that *other*, equivalent states would have been
+    # considered representative, we can still reconstruct the RST, diagsect,
+    # etc.  For this use case, the exact order of the representative states
+    # does not matter; it simply matters what the representative states look
+    # like.
+    original_indexer = rst.hs.indexer
+    return IndexedArray{eltype(original_indexer)}([original_indexer[i] for i in rst.representative_state_indices])
+end
+
 function construct_reduced_indexer(diagsect::DiagonalizationSector)
     original_indexer = diagsect.state_table.hs.indexer
     return IndexedArray{eltype(original_indexer)}([original_indexer[i] for i in diagsect.reduced_indexer])

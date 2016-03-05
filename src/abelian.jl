@@ -90,9 +90,9 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     # the original state)
     additional_symmetry_periods::Vector{Int}
 
-    function RepresentativeStateTable(hs::HilbertSpaceType, apply_hamiltonian::Function,
-                                      additional_symmetries::Vector{Tuple{Function,Int}}=Tuple{Function,Int}[],
-                                      transformation_exponent_v::Vector{Int}=Int[])
+    function RepresentativeStateTable{F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function,
+                                                   additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[],
+                                                   transformation_exponent_v::Vector{Int}=Int[])
         for (symm_func, symm_period) in additional_symmetries
             @assert symm_period > 0
         end
@@ -223,7 +223,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{Function,Int}}=Tuple{Function,Int}[]) =
+RepresentativeStateTable{HilbertSpaceType<:HilbertSpace,F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[]) =
     RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian, additional_symmetries)
 
 # At times we will want to be able to specify which states are used as the

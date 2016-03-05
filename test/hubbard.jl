@@ -29,7 +29,7 @@ end
 test_1d_hubbard_hamiltonian(ChainLattice([8]))
 
 # With abelian symmetries (this one always assumes half filling)
-function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{Function,Int}})
+function test_1d_hubbard_symmetries{F<:Function}(lattice, symmetries::Vector{Tuple{F,Int}})
     L = length(lattice)
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, div(L, 2), div(L, 2))

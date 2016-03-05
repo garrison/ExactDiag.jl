@@ -2,6 +2,7 @@ using IndexedArrays
 using Bravais
 using ExactDiag
 using JLD
+using Combinatorics
 using Base.Test
 
 debug = false

@@ -44,7 +44,7 @@ Consider a projection operator
 .. math::
    \hat{P}_\mathbf{k} \equiv \frac{1}{N} \sum_\mathbf{r} e^{i\mathbf{k}\cdot \mathbf{r}} \prod_{i=1}^{d} \hat{T}_i^{r_i}
 
-where :math:`\mathbf{r_i}` is defined by :math:`\mathbf{r} = \sum_{i=1}^d r_i \mathbf{a}_i` (where :math:`\mathrm{a}_i` are the primitive vectors of the lattice), :math:`\hat{T}_i` is the unit translation operator in the :math:`i`'th direction of the lattice, and :math:`\mathbf{k}` is some allowed momenta of the system.  (In a one dimensional spin-1/2 system of length :math:`L` with PBC, the translation operator is defined such that :math:`\hat{T}_1 \vert \sigma_1 \cdots \sigma_{L-1} \sigma_L \rangle = \vert \sigma_L \sigma_1 \cdots \sigma_{L-1} \rangle`, and :math:`k= \frac{2\pi k_\mathrm{idx}}{L}` where :math:`k_\mathrm{idx} \in \mathbb{Z}_L`.)
+where :math:`\mathbf{r_i}` is defined by :math:`\mathbf{r} = \sum_{i=1}^d r_i \mathbf{a}_i` (where :math:`\mathbf{a}_i` are the primitive vectors of the lattice), :math:`\hat{T}_i` is the unit translation operator in the :math:`i`'th direction of the lattice, and :math:`\mathbf{k}` is some allowed momentum of the system.  (In a one dimensional spin-1/2 system of length :math:`L` with PBC, the translation operator is defined such that :math:`\hat{T}_1 \vert \sigma_1 \cdots \sigma_{L-1} \sigma_L \rangle = \vert \sigma_L \sigma_1 \cdots \sigma_{L-1} \rangle`, and :math:`k= \frac{2\pi k_\mathrm{idx}}{L}` where :math:`k_\mathrm{idx} \in \mathbb{Z}_L`.)
 
 Since :math:`[\hat{H}, \hat{T}] = 0`, it follows that :math:`[\hat{H}, \hat{P}_k] = 0`.  It can also be shown that :math:`\hat{P}_k^\dagger = \hat{P}_k` and :math:`\hat{P}_k^2 = \hat{P}_k`.  In other words, :math:`\hat{P}_k` is a Hermitian projection operator that commutes with the Hamiltonian.
 

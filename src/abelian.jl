@@ -462,13 +462,13 @@ end
 length(diagsect::DiagonalizationSector) = length(diagsect.reduced_indexer)
 checkbounds(diagsect::DiagonalizationSector, i::Integer) = 0 < i <= length(diagsect) || throw(BoundsError())
 
-function apply_reduced_hamiltonian(f, diagsect::DiagonalizationSector, reduced_j::Integer)
-    # This, of course, assumes that the Hamiltonian commutes with any
+function apply_reduced_commuting_operator(f, diagsect::DiagonalizationSector, reduced_j::Integer, apply_operator)
+    # This, of course, assumes that the operator commutes with any
     # translations allowed by the diagsect.
     checkbounds(diagsect, reduced_j)
     j = diagsect.reduced_indexer[reduced_j]
     reduced_j_norm = diagsect.norm_v[reduced_j]
-    diagsect.state_table.apply_hamiltonian(diagsect.state_table.hs, j) do i, amplitude
+    apply_operator(diagsect.state_table.hs, j) do i, amplitude
         reduced_i, alpha = diagsect.representative_v[i]
         # If reduced_i is zero, this term has zero norm and is
         # therefore not in our sector, so we ignore it.  This is
@@ -480,20 +480,31 @@ function apply_reduced_hamiltonian(f, diagsect::DiagonalizationSector, reduced_j
     end
 end
 
-function construct_reduced_hamiltonian(diagsect::DiagonalizationSector)
+
+function construct_reduced_commuting_operator(diagsect::DiagonalizationSector, apply_operator)
     s = length(diagsect)
     rows = Int[]
     cols = Int[]
     vals = Complex128[]
     for j in 1:s
-        apply_reduced_hamiltonian(diagsect, j) do i, amplitude
+        apply_reduced_commuting_operator(diagsect, j, apply_operator) do i, amplitude
             push!(rows, i)
             push!(cols, j)
             push!(vals, amplitude)
         end
     end
 
-    hmat = sparse(rows, cols, vals, s, s)
+    return sparse(rows, cols, vals, s, s)
+end
+
+function apply_reduced_hamiltonian(f, diagsect::DiagonalizationSector, reduced_j::Integer)
+    # This, of course, assumes that the Hamiltonian commutes with any
+    # translations allowed by the diagsect.
+    apply_reduced_commuting_operator(f, diagsect, reduced_j, diagsect.state_table.apply_hamiltonian)
+end
+
+function construct_reduced_hamiltonian(diagsect::DiagonalizationSector)
+    hmat = construct_reduced_commuting_operator(diagsect, diagsect.state_table.apply_hamiltonian)
 
     # XXX: (numerical) assert hermitian
     #inhermiticity = sum(abs(hmat - hmat'))

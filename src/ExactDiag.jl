@@ -174,6 +174,8 @@ export
     construct_reduced_hamiltonian,
     apply_reduced_operator,
     construct_reduced_operator,
+    apply_reduced_commuting_operator,
+    construct_reduced_commuting_operator,
     construct_reduced_indexer,
     get_full_psi!,
     get_full_psi,

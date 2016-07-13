@@ -29,8 +29,8 @@ edapply(f) = f
 @doc doc"""
 Looks up a (possibly site-dependent) parameter.
 """ ->
-getval(v::Real, i::Integer) = v
-getval{T<:Real}(v::Vector{T}, i::Integer) = v[i]
+getval(v::Number, i::Integer) = v
+getval{T<:Number}(v::Vector{T}, i::Integer) = v[i]
 
 function exp_2πiη(η::Rational{Int})
     d = den(η)

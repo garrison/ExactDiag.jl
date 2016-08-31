@@ -2,7 +2,7 @@ using IndexedArrays
 using Bravais
 using ExactDiag
 using JLD
-using Combinatorics
+VERSION >= v"0.5-" && using Combinatorics
 using Base.Test
 
 debug = false

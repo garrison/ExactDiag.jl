@@ -1,8 +1,6 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__()
+__precompile__()
 
 module ExactDiag
-
-VERSION < v"0.4-" && using Docile
 
 using Bravais
 using IndexedArrays

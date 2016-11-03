@@ -415,7 +415,7 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 # to store norm_v.  ugh, looks like we need it after all!
                 #
                 # XXX: rename these, and write down some algebra equations
-                alpha = val / norm;
+                alpha = val / norm
                 representative_v[idx] = (reduced_i, alpha)
                 push!(coefficient_v, (reduced_i, idx, alpha))
             end

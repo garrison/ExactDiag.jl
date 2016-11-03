@@ -94,7 +94,7 @@ eigenstate_badness{T<:Number,S<:Number}(hamiltonian::AbstractMatrix{T}, eigenval
 eigenstate_badness{S<:Number}(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{S}) =
     vecnorm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
 
-check_eigenstate(args...; tolerance=1e-5) = abs(eigenstate_badness(args...)) < tolerance || throw(InexactError())
+check_eigenstate(args...; tolerance::Float64=1e-5) = abs(eigenstate_badness(args...)) < tolerance || throw(InexactError())
 
 immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType

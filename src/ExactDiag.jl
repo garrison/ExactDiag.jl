@@ -162,6 +162,7 @@ export
     apply_SpSm,
     apply_SmSp,
     apply_SpSm_SmSp,
+    apply_total_spin_operator,
     HubbardHilbertSpace,
     HubbardParameters,
     hubbard_hamiltonian,

@@ -140,6 +140,7 @@ immutable HubbardParameters
     W::Float64
     J_xy::Float64
     J_z::Float64
+    μ::Float64
     ϵ_total_spin::Float64
     ϵ_total_pseudospin::Float64
 
@@ -151,6 +152,7 @@ immutable HubbardParameters
                                J::Real=0.0,
                                J_xy::Real=0.0,
                                J_z::Real=0.0,
+                               μ::Real=0.0,
                                ϵ_total_spin::Real=0.0,
                                ϵ_total_pseudospin::Real=0.0)
         if J != 0
@@ -158,7 +160,7 @@ immutable HubbardParameters
             J_xy = J_z = J
         end
 
-        new(t, U, V, W, J_xy, J_z, ϵ_total_spin, ϵ_total_pseudospin)
+        new(t, U, V, W, J_xy, J_z, μ, ϵ_total_spin, ϵ_total_pseudospin)
     end
 end
 
@@ -264,6 +266,15 @@ function hubbard_hamiltonian(p::HubbardParameters)
                 end
             end
             diagonal += p.U * doubly_occupied_sites
+        end
+
+        # chemical potential μ
+        if p.μ != 0
+            total_charge = 0
+            for x in 1:length(hs.lattice)
+                total_charge += get_charge(hs, state[x])
+            end
+            diagonal += -p.μ * total_charge
         end
 
         # total spin term

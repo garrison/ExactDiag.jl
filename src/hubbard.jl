@@ -261,9 +261,7 @@ function hubbard_hamiltonian(p::HubbardParameters)
         if p.U != 0
             doubly_occupied_sites = 0
             for x in 1:length(hs.lattice)
-                if state[x] == 3
-                    doubly_occupied_sites += 1
-                end
+                doubly_occupied_sites += ifelse(state[x] == 3, 1, 0)
             end
             diagonal += p.U * doubly_occupied_sites
         end

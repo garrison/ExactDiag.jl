@@ -141,6 +141,7 @@ export
     HilbertSpaceTranslationCache,
     statetype,
     seed_state!,
+    get_σz,
     get_charge,
     SpinHalfHilbertSpace,
     spin_half_hamiltonian,

@@ -90,6 +90,14 @@ let
             @test_approx_eq output_states2[:, :, 1] output_states
             @test_approx_eq output_states2[:, :, 2] (im * output_states)
         end
+
+        # Test that doing exact diagonalization without regard to momentum sectors
+        # would give the same results
+        full_ham = operator_matrix(hs, apply_hamiltonian)
+        fact = eigfact(Hermitian(full(full_ham)))
+        ψ_e = fact[:vectors]' * initial_state
+        ψ_t = fact[:vectors] * (exp.(-im .* fact[:values] .* time_steps.') .* ψ_e)
+        @test_approx_eq ψ_t output_states
     end
 
     # Try evolving a state whose support is only on a subset of momentum sectors

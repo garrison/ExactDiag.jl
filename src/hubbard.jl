@@ -166,95 +166,99 @@ end
 
 hubbard_hamiltonian(; kwargs...) = hubbard_hamiltonian(HubbardParameters(; kwargs...))
 
+function hubbard_neighbor_terms(f, hs, state, x::Int, x_r::Int, η::Rational{Int}, t_up, t_dn, J_xy=0, J_z=0, V=0, W=0)
+    # figure out whether we need to pick up a phase
+    pt = phase_tracker(state, x, x_r)
+    x_r_up_phase = 1 - ((pt & 1) << 1)
+    x_r_dn_phase = 1 - (pt & 2)
+    e_iθ = exp_2πiη(η)
+    @assert x_r_up_phase == 1 || x_r_up_phase == -1
+    @assert x_r_dn_phase == 1 || x_r_dn_phase == -1
+
+    # up spin hopping
+    const b_up = 1
+    if state[x_r] & b_up != 0
+        # backward
+        if state[x] & b_up == 0
+            other = copy(state)
+            other[x_r] -= b_up
+            other[x] += b_up
+            s_i = findfirst!(hs.indexer, other)
+            f(s_i, -t_up * x_r_up_phase * e_iθ)
+        end
+    end
+    if state[x] & b_up != 0
+        # forward
+        if state[x_r] & b_up == 0
+            other = copy(state)
+            other[x] -= b_up
+            other[x_r] += b_up
+            s_i = findfirst!(hs.indexer, other)
+            f(s_i, -t_up * x_r_up_phase * conj(e_iθ))
+        end
+    end
+
+    # dn spin hopping
+    const b_dn = 2
+    if state[x_r] & b_dn != 0
+        # backward
+        if state[x] & b_dn == 0
+            other = copy(state)
+            other[x_r] -= b_dn
+            other[x] += b_dn
+            s_i = findfirst!(hs.indexer, other)
+            f(s_i, -t_dn * x_r_dn_phase * e_iθ)
+        end
+    end
+    if state[x] & b_dn != 0
+        # forward
+        if state[x_r] & b_dn == 0
+            other = copy(state)
+            other[x] -= b_dn
+            other[x_r] += b_dn
+            s_i = findfirst!(hs.indexer, other)
+            f(s_i, -t_dn * x_r_dn_phase * conj(e_iθ))
+        end
+    end
+
+    # exchange J
+    if J_xy != 0
+        # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
+        if ((state[x] == 1 && state[x_r] == 2)
+            || (state[x] == 2 && state[x_r] == 1))
+            other = copy(state)
+            other[x], other[x_r] = other[x_r], other[x]
+            s_i = findfirst!(hs.indexer, other)
+            # the minus sign comes from working through the site hops carefully.
+            f(s_i, -0.5 * J_xy * x_r_up_phase * x_r_dn_phase)
+        end
+    end
+    if J_z != 0
+        # S^z_i S^z_j
+        diagonal += 0.25 * J_z * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
+    end
+
+    # Neighbor repulsion "V"
+    if V != 0
+        c = get_charge(hs, state[x]) * get_charge(hs, state[x_r])
+        diagonal += V * c
+    end
+
+    # Neighbor doublon repulsion "W"
+    if W != 0
+        if (state[x] == 3 && state[x_r] == 3)
+            diagonal += W
+        end
+    end
+end
+
 function hubbard_hamiltonian(p::HubbardParameters)
     return function apply_hamiltonian(f, hs::HubbardHilbertSpace, s_j::Integer)
         state = hs.indexer[s_j]
         diagonal = 0.0
 
         neighborsη(hs.lattice) do x::Int, x_r::Int, η::Rational{Int}
-            # figure out whether we need to pick up a phase
-            pt = phase_tracker(state, x, x_r)
-            x_r_up_phase = 1 - ((pt & 1) << 1)
-            x_r_dn_phase = 1 - (pt & 2)
-            e_iθ = exp_2πiη(η)
-            @assert x_r_up_phase == 1 || x_r_up_phase == -1
-            @assert x_r_dn_phase == 1 || x_r_dn_phase == -1
-
-            # up spin hopping
-            const b_up = 1
-            if state[x_r] & b_up != 0
-                # backward
-                if state[x] & b_up == 0
-                    other = copy(state)
-                    other[x_r] -= b_up
-                    other[x] += b_up
-                    s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -p.t * x_r_up_phase * e_iθ)
-                end
-            end
-            if state[x] & b_up != 0
-                # forward
-                if state[x_r] & b_up == 0
-                    other = copy(state)
-                    other[x] -= b_up
-                    other[x_r] += b_up
-                    s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -p.t * x_r_up_phase * conj(e_iθ))
-                end
-            end
-
-            # dn spin hopping
-            const b_dn = 2
-            if state[x_r] & b_dn != 0
-                # backward
-                if state[x] & b_dn == 0
-                    other = copy(state)
-                    other[x_r] -= b_dn
-                    other[x] += b_dn
-                    s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -p.t * x_r_dn_phase * e_iθ)
-                end
-            end
-            if state[x] & b_dn != 0
-                # forward
-                if state[x_r] & b_dn == 0
-                    other = copy(state)
-                    other[x] -= b_dn
-                    other[x_r] += b_dn
-                    s_i = findfirst!(hs.indexer, other)
-                    f(s_i, -p.t * x_r_dn_phase * conj(e_iθ))
-                end
-            end
-
-            # Nearest neighbor repulsion "V"
-            if p.V != 0
-                c = get_charge(hs, state[x]) * get_charge(hs, state[x_r])
-                diagonal += p.V * c
-            end
-
-            # Nearest neighbor doublon repulsion "W"
-            if p.W != 0
-                if (state[x] == 3 && state[x_r] == 3)
-                    diagonal += p.W
-                end
-            end
-
-            # exchange J
-            if p.J_xy != 0
-                # 0.5 * (S^+_i S^-_j + S^-_i S^+_j)
-                if ((state[x] == 1 && state[x_r] == 2)
-                    || (state[x] == 2 && state[x_r] == 1))
-                    other = copy(state)
-                    other[x], other[x_r] = other[x_r], other[x]
-                    s_i = findfirst!(hs.indexer, other)
-                    # the minus sign comes from working through the site hops carefully.
-                    f(s_i, -0.5 * p.J_xy * x_r_up_phase * x_r_dn_phase)
-                end
-            end
-            if p.J_z != 0
-                # S^z_i S^z_j
-                diagonal += 0.25 * p.J_z * get_σz(hs, state[x]) * get_σz(hs, state[x_r])
-            end
+            hubbard_neighbor_terms(f, hs, state, x, x_r, η, p.t, p.t, p.J_xy, p.J_z, p.V, p.W)
         end
 
         # Hubbard U

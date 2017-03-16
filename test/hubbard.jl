@@ -298,10 +298,10 @@ let
     #test_slater_determinants(TriangularLattice([2, 3], diagm([2,3]), [1//2, 1//3]), 3, 3)
 end
 
-function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2) # does not assume half filling
+function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, t2=0) # does not assume half filling
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, N_updn, N_updn)
-    apply_hamiltonian = hubbard_hamiltonian(t=t, U=U)
+    apply_hamiltonian = hubbard_hamiltonian(t=t, U=U, t2=t2)
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
 
     full_ham = operator_matrix(hs, apply_hamiltonian)
@@ -346,6 +346,10 @@ test_hubbard_abelian_spinflip(ChainLattice([2], diagm([2]), [1//3]), 1)
 test_hubbard_abelian_spinflip(ChainLattice([4], diagm([4]), [1//3]), 2)
 test_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//2]), 3)
 test_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//5]), 3)
+test_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//5]), 3, t2=0.2)
 
 test_hubbard_abelian_spinflip(SquareLattice([2,3]), 3)
 test_hubbard_abelian_spinflip(TriangularLattice([2,3]), 3)
+# NOTE: The triangular lattice does not (yet) implement next-nearest
+# neighbors, so this should fail.
+@test_throws MethodError test_hubbard_abelian_spinflip(TriangularLattice([2,3]), 3, t2=0.2)

@@ -143,6 +143,7 @@ immutable HubbardParameters
     μ::Float64
     ϵ_total_spin::Float64
     ϵ_total_pseudospin::Float64
+    t2::Float64
 
     function HubbardParameters(;
                                t::Real=0.0,
@@ -154,19 +155,23 @@ immutable HubbardParameters
                                J_z::Real=0.0,
                                μ::Real=0.0,
                                ϵ_total_spin::Real=0.0,
-                               ϵ_total_pseudospin::Real=0.0)
+                               ϵ_total_pseudospin::Real=0.0,
+                               t2::Real=0.0)
         if J != 0
             J_xy == J_z == 0 || throw(ArgumentError("If J is provided, J_xy and J_z must not be."))
             J_xy = J_z = J
         end
 
-        new(t, U, V, W, J_xy, J_z, μ, ϵ_total_spin, ϵ_total_pseudospin)
+        new(t, U, V, W, J_xy, J_z, μ, ϵ_total_spin, ϵ_total_pseudospin, t2)
     end
 end
 
 hubbard_hamiltonian(; kwargs...) = hubbard_hamiltonian(HubbardParameters(; kwargs...))
 
-function hubbard_neighbor_terms(f, hs, state, x::Int, x_r::Int, η::Rational{Int}, t_up, t_dn, J_xy=0, J_z=0, V=0, W=0)
+function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int}, t_up, t_dn, J_xy=0, J_z=0, V=0, W=0)
+    state = hs.indexer[s_j]
+    diagonal = 0.0
+
     # figure out whether we need to pick up a phase
     pt = phase_tracker(state, x, x_r)
     x_r_up_phase = 1 - ((pt & 1) << 1)
@@ -250,6 +255,9 @@ function hubbard_neighbor_terms(f, hs, state, x::Int, x_r::Int, η::Rational{Int
             diagonal += W
         end
     end
+
+    f(s_j, diagonal)
+    nothing
 end
 
 function hubbard_hamiltonian(p::HubbardParameters)
@@ -258,7 +266,13 @@ function hubbard_hamiltonian(p::HubbardParameters)
         diagonal = 0.0
 
         neighborsη(hs.lattice) do x::Int, x_r::Int, η::Rational{Int}
-            hubbard_neighbor_terms(f, hs, state, x, x_r, η, p.t, p.t, p.J_xy, p.J_z, p.V, p.W)
+            hubbard_neighbor_terms(f, hs, s_j, x, x_r, η, p.t, p.t, p.J_xy, p.J_z, p.V, p.W)
+        end
+
+        if p.t2 != 0
+            neighborsη(hs.lattice, Val{2}) do x::Int, x_r::Int, η::Rational{Int}
+                hubbard_neighbor_terms(f, hs, s_j, x, x_r, η, p.t2, p.t2)
+            end
         end
 
         # Hubbard U

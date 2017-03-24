@@ -95,7 +95,7 @@ let
         # would give the same results
         full_ham = operator_matrix(hs, apply_hamiltonian)
         fact = eigfact(Hermitian(full(full_ham)))
-        ψ_e = fact[:vectors]' * initial_state
+        ψ_e = Ac_mul_B(fact[:vectors], initial_state)
         ψ_t = fact[:vectors] * (exp.(-im .* fact[:values] .* time_steps.') .* ψ_e)
         @test_approx_eq ψ_t output_states
     end

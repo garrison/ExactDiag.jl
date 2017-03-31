@@ -11,7 +11,7 @@ using JLD
 import Base: length, checkbounds
 import Bravais: translateη
 
-abstract HilbertSpace{StateType}
+@compat abstract type HilbertSpace{StateType} end
 
 statetype{StateType}(::HilbertSpace{StateType}) = StateType
 

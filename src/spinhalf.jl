@@ -1,4 +1,4 @@
-typealias SpinHalfStateType Vector{Int}
+@compat const SpinHalfStateType = Vector{Int}
 
 immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType}} <: HilbertSpace{SpinHalfStateType}
     lattice::LatticeType

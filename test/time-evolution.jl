@@ -9,10 +9,10 @@ mktempdir() do tmpdir
 
     jldopen(fn) do file
         b = rand(n, m) + im * rand(n, m)
-        @test_approx_eq ExactDiag.my_Ac_mul_B(file["a"], b) (a' * b)
+        @test ExactDiag.my_Ac_mul_B(file["a"], b) ≈ a' * b
 
         c = Array{Complex128}(size(b)...)
-        @test_approx_eq ExactDiag.my_A_mul_B!(c, file["a"], b) (a * b)
+        @test ExactDiag.my_A_mul_B!(c, file["a"], b) ≈ a * b
     end
 end
 
@@ -46,15 +46,15 @@ let
     let output_states = time_evolve(calculate_momentum_sector, rst, initial_state, time_steps)
         # Test that time-evolved norms are all (essentially) unity
         for t_i in 1:length(time_steps)
-            @test_approx_eq norm(output_states[:, t_i]) 1
+            @test norm(output_states[:, t_i]) ≈ 1
         end
 
         # Test that evolving for zero time returns that same wavefunction
-        @test_approx_eq initial_state output_states[:, end]
+        @test initial_state ≈ output_states[:, end]
 
         # Test that evolving forward, then backwards, returns the same wavefunction
         reverse_evolved_state = time_evolve(calculate_momentum_sector, rst, output_states[:, end], [-time_steps[end]])
-        @test_approx_eq initial_state reverse_evolved_state
+        @test initial_state ≈ reverse_evolved_state
 
         # Test JLD dataset time evolution
         mktempdir() do tmpdir
@@ -81,14 +81,14 @@ let
                 end
 
                 # Check the results
-                @test_approx_eq output_states output_states_jld
+                @test output_states ≈ output_states_jld
             end
         end
 
         # Test multiple initial states
         let output_states2 = time_evolve(calculate_momentum_sector, rst, [initial_state (im * initial_state)], time_steps)
-            @test_approx_eq output_states2[:, :, 1] output_states
-            @test_approx_eq output_states2[:, :, 2] (im * output_states)
+            @test output_states2[:, :, 1] ≈ output_states
+            @test output_states2[:, :, 2] ≈ im * output_states
         end
 
         # Test that doing exact diagonalization without regard to momentum sectors
@@ -97,7 +97,7 @@ let
         fact = eigfact(Hermitian(full(full_ham)))
         ψ_e = Ac_mul_B(fact[:vectors], initial_state)
         ψ_t = fact[:vectors] * (exp.(-im .* fact[:values] .* time_steps.') .* ψ_e)
-        @test_approx_eq ψ_t output_states
+        @test ψ_t ≈ output_states
     end
 
     # Try evolving a state whose support is only on a subset of momentum sectors
@@ -110,15 +110,15 @@ let
 
         # Test that time-evolved norms are all (essentially) unity
         for t_i in 1:length(time_steps)
-            @test_approx_eq norm(output_states[:, t_i]) 1
+            @test norm(output_states[:, t_i]) ≈ 1
         end
 
         # Test that evolving for zero time returns that same wavefunction
-        @test_approx_eq initial_state output_states[:, end]
+        @test initial_state ≈ output_states[:, end]
 
         # Test against standard evolution
         let output_states2 = time_evolve(calculate_momentum_sector, rst, initial_state, time_steps)
-            @test_approx_eq output_states2 output_states
+            @test output_states2 ≈ output_states
         end
     end
 
@@ -130,6 +130,6 @@ let
         @test length(ψ_e) < length(rst.hs.indexer)
 
         # Test that the norm is not unity.
-        @test_approx_eq norm(ψ_e) 1/sqrt(2)
+        @test norm(ψ_e) ≈ 1/sqrt(2)
     end
 end

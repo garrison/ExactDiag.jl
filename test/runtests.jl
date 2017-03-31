@@ -1,8 +1,11 @@
 using IndexedArrays
 using Bravais
 using ExactDiag
+
+using Compat
 using JLD
-VERSION >= v"0.5-" && using Combinatorics
+using Combinatorics
+
 using Base.Test
 
 debug = false
@@ -12,11 +15,12 @@ debug = false
 @test ExactDiag.exp_2πiη(1//2) == -1
 @test ExactDiag.exp_2πiη(-1//2) == -1
 @test ExactDiag.exp_2πiη(-1//1) == 1
-@test_approx_eq ExactDiag.exp_2πiη(-1//1) exp(-2π * im)
-@test_approx_eq ExactDiag.exp_2πiη(1//2) exp(π * im)
-@test_approx_eq ExactDiag.exp_2πiη(1//4) exp(π/2 * im)
-@test_approx_eq ExactDiag.exp_2πiη(1//3) exp(2π/3 * im)
-@test_approx_eq ExactDiag.exp_2πiη(1//3) exp(2π/3 * im)
+
+@test ExactDiag.exp_2πiη(-1//1) ≈ exp(-2π * im)
+@test ExactDiag.exp_2πiη(1//2) ≈ exp(π * im)
+@test ExactDiag.exp_2πiη(1//4) ≈ exp(π/2 * im)
+@test ExactDiag.exp_2πiη(1//3) ≈ exp(2π/3 * im)
+@test ExactDiag.exp_2πiη(1//3) ≈ exp(2π/3 * im)
 
 macro myinclude(filename)
     debug && println(filename)

@@ -70,7 +70,7 @@ let
                 end
             end
             if k_idx == 1 && spinflip_idx == 0
-                @test_approx_eq evals[1] -3.651093408937176
+                @test evals[1] ≈ -3.651093408937176
             end
         end
     end

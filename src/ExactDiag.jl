@@ -4,6 +4,7 @@ module ExactDiag
 
 using Bravais
 using IndexedArrays
+using Compat
 using SortingAlgorithms
 using JLD
 
@@ -31,11 +32,11 @@ getval(v::Number, i::Integer) = v
 getval{T<:Number}(v::Vector{T}, i::Integer) = v[i]
 
 function exp_2πiη(η::Rational{Int})
-    d = den(η)
+    d = denominator(η)
     if d == 1
         return one(Complex128)
     elseif d == 2
-        @assert num(η) & 1 == 1 # otherwise the fraction mustn't be in reduced form
+        @assert numerator(η) & 1 == 1 # otherwise the fraction mustn't be in reduced form
         return -one(Complex128)
     else
         return exp(im * (2π * η))

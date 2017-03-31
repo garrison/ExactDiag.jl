@@ -33,7 +33,7 @@ function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz, expected
     end
 
     # Test GS energy
-    @test_approx_eq evals[1] expected_gs
+    @test evals[1] ≈ expected_gs
 
     # Test some correlators in the GS
     evec = evecs[:,1]
@@ -124,6 +124,6 @@ function test_1d_translation_invariant_hamiltonian(lattice)
     end
     # FIXME: compare with Bethe ansatz result and/or DMRG
     gs_energy, = eigs(mat, which=:SR, nev=1, ritzvec=false)
-    @test_approx_eq gs_energy[1] -3.651093408937176
+    @test gs_energy[1] ≈ -3.651093408937176
 end
 test_1d_translation_invariant_hamiltonian(ChainLattice([8]))

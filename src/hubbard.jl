@@ -13,7 +13,7 @@ HubbardHilbertSpace(lattice) = HubbardHilbertSpace(lattice, IndexedArray{Hubbard
 # ud 3
 
 # only the first two bits are allowed to be set
-is_valid_hubbard_site_state(site_state::Integer) = (site_state & ~(zero(site_state) $ 3)) == 0
+is_valid_hubbard_site_state(site_state::Integer) = (site_state & ~(zero(site_state) ⊻ 3)) == 0
 
 function get_σz(::HubbardHilbertSpace, site_state::Integer)
     @assert is_valid_hubbard_site_state(site_state)
@@ -55,7 +55,7 @@ function phase_tracker(state::Vector, x1::Integer, x2::Integer)
 
     rv = 0
     for i in x1+1:x2-1
-        rv $= state[i]
+        rv = rv ⊻ state[i]
     end
     return rv
 end
@@ -79,7 +79,7 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
                 # figure out whether we need to pick up a phase for the fermions
                 pt = phase_tracker(state, x, x_r)
                 # the following line maps [0, 1, 2, 3] to [1, -1, -1, 1]
-                mult = 1 - ((pt & 2) $ ((pt & 1) << 1))
+                mult = 1 - ((pt & 2) ⊻ ((pt & 1) << 1))
                 @assert mult == 1 || mult == -1
 
                 # the minus sign comes from working through the site hops carefully.
@@ -116,10 +116,10 @@ function apply_total_pseudospin_operator(f, hs::HubbardHilbertSpace, s_j::Intege
                 # figure out whether we need to pick up a phase for the fermions
                 pt = phase_tracker(state, x, x_r)
                 # the following line maps [0, 1, 2, 3] to [1, -1, -1, 1]
-                mult = 1 - ((pt & 2) $ ((pt & 1) << 1))
+                mult = 1 - ((pt & 2) ⊻ ((pt & 1) << 1))
                 @assert mult == 1 || mult == -1
 
-                sublattice_parity = sublattice_index_x $ sublattice_index(hs.lattice, x_r)
+                sublattice_parity = sublattice_index_x ⊻ sublattice_index(hs.lattice, x_r)
                 @assert sublattice_parity & 1 == sublattice_parity
                 sublattice_factor = 1 - 2 * sublattice_parity
                 f(s_i, 0.5 * sublattice_factor * mult)
@@ -317,10 +317,10 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
     end
     state = zeros(Int, length(hs.lattice))
     for i in 1:N_up
-        state[i] $= 1
+        state[i] = state[i] ⊻ 1
     end
     for i in 1:N_dn
-        state[i] $= 2
+        state[i] = state[i] ⊻ 2
     end
     findfirst!(hs.indexer, state)
     return hs
@@ -335,12 +335,12 @@ function permutation_parity(perm::Vector{Int})
         j = i
         while true
             j = perm[j]
-            parity $= 1
+            parity = parity ⊻ 1
             @assert !inspected[j]
             inspected[j] = true
             j == i && break
         end
-        parity $= 1
+        parity = parity ⊻ 1
     end
     return parity
 end
@@ -359,7 +359,7 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
             if state[i] & bit != 0
                 new_site_index, η = translateη(ltrc, i)
                 @assert 0 < new_site_index <= sz
-                newstate[new_site_index] $= bit
+                newstate[new_site_index] = newstate[new_site_index] ⊻ bit
                 push!(cdagger, new_site_index)
                 phase -= η
             end
@@ -367,7 +367,7 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
 
         # Determine the parity of the permutation that orders them
         perm = sortperm(cdagger, alg=TimSort)
-        parity $= permutation_parity(perm)
+        parity = parity ⊻ permutation_parity(perm)
     end
 
     @assert parity == 0 || parity == 1
@@ -380,7 +380,7 @@ end
 
 function site_spinflip(site_state)
     let x = (site_state + 1) & 2
-        return site_state $ (x | (x >> 1))
+        return site_state ⊻ (x | (x >> 1))
     end
 end
 
@@ -394,13 +394,13 @@ function spinflipη(hs::HubbardHilbertSpace, j::Integer)
     # for this permutation of operators.  The permutation is odd if and only if
     # there is an odd number of up spins and an odd number of down spins.  The
     # following line picks up a sign when this is the case.
-    η = (reduce($, state) == 3) ? 1//2 : 0//1
+    η = (reduce(xor, state) == 3) ? 1//2 : 0//1
 
     return i, η
 end
 
 function particleholeη(hs::HubbardHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, [x $ 3 for x in state])
+    i = findfirst!(hs.indexer, [x ⊻ 3 for x in state])
     return i, 0//1
 end

@@ -40,7 +40,7 @@ let
             end
         end
         if k_idx == 1
-            @test_approx_eq evals[1] -3.651093408937176
+            @test evals[1] ≈ -3.651093408937176
         end
     end
     @test processed_length == length(indexer)

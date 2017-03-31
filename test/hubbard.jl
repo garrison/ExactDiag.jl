@@ -173,7 +173,7 @@ let
 
     overlap = dot(gs_evec, slater)
     debug && @show overlap
-    @test_approx_eq abs(overlap) 1
+    @test abs(overlap) ≈ 1
 end
 
 # Slater determinants for all eigenstates
@@ -207,7 +207,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
             filled_orbitals = map(k_idx -> momentum(lattice, k_idx),
                                   [filled_k_up_indices; filled_k_dn_indices])
             energy = mapreduce(ϵ, +, filled_orbitals)
-            total_momentum = rem(reduce(+, filled_orbitals), 1)
+            total_momentum = rem.(reduce(+, filled_orbitals), 1)
             v = get!(band_fillings, total_momentum) do
                 Tuple{Float64, Vector{Int}, Vector{Int}}[]
             end
@@ -222,7 +222,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     end
     @assert mapreduce(length, +, values(band_fillings)) == length(hs.indexer)
 
-    total_momenta = [rem(momentum(lattice, k_idx, N_up + N_dn), 1) for k_idx in eachmomentumindex(lattice)]
+    total_momenta = [rem.(momentum(lattice, k_idx, N_up + N_dn), 1) for k_idx in eachmomentumindex(lattice)]
 
     root_V = sqrt(length(lattice))
 

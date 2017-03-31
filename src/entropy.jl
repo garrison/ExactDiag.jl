@@ -156,7 +156,7 @@ function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, psimat::Matri
 end
 
 construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T}) =
-    construct_ρ_A_block!(ρ_A, Array(T, length(ts.indexer_A), length(ts.indexer_B)), ts, ψ)
+    construct_ρ_A_block!(ρ_A, Array{T}(length(ts.indexer_A), length(ts.indexer_B)), ts, ψ)
 
 function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ρ::AbstractMatrix{T})
     size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(DimensionMismatch("Density matrix ρ has the wrong size"))
@@ -177,7 +177,7 @@ end
 
 function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ_or_ρ::AbstractVecOrMat{T})
     M = length(ts.indexer_A)
-    return construct_ρ_A_block!(Array(T, M, M), ts, ψ_or_ρ)
+    return construct_ρ_A_block!(Array{T}(M, M), ts, ψ_or_ρ)
 end
 
 # Apparently julia does not special-case eigvals() for small, Hermitian

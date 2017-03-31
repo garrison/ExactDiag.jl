@@ -139,7 +139,7 @@ let
     debug && @show gs_eval
 
     # Construct the Slater determinant wavefunction
-    slater = Array(Complex128, length(hs.indexer))
+    slater = Array{Complex128}(length(hs.indexer))
     for (i, state) in enumerate(hs.indexer)
         # First figure out the positions of the particles
         pn = 3
@@ -153,8 +153,8 @@ let
         @assert length(r_dn) == pn
 
         # Now construct and calculate the two determinants.
-        mat1 = Array(Complex128, pn, pn)
-        mat2 = Array(Complex128, pn, pn)
+        mat1 = Array{Complex128}(pn, pn)
+        mat2 = Array{Complex128}(pn, pn)
         for j in 1:3
             mat1[j, 1] = exp(im * pi * r_up[j] / 3.)
             mat1[j, 2] = 1
@@ -227,7 +227,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     root_V = sqrt(length(lattice))
 
     # Construct each Slater determinant wavefunction
-    slater_wfs = [Array(Complex128, length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
+    slater_wfs = [Array{Complex128}(length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
     for (i, state) in enumerate(hs.indexer)
         # First figure out the positions of the particles
         r_up = find(x -> x & 1 != 0, state)

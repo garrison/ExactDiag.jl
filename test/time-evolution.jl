@@ -11,7 +11,7 @@ mktempdir() do tmpdir
         b = rand(n, m) + im * rand(n, m)
         @test_approx_eq ExactDiag.my_Ac_mul_B(file["a"], b) (a' * b)
 
-        c = Array(Complex128, size(b)...)
+        c = Array{Complex128}(size(b)...)
         @test_approx_eq ExactDiag.my_A_mul_B!(c, file["a"], b) (a * b)
     end
 end

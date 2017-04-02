@@ -223,8 +223,8 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-RepresentativeStateTable{HilbertSpaceType<:HilbertSpace,F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[]) =
-    RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian, additional_symmetries)
+RepresentativeStateTable{HilbertSpaceType<:HilbertSpace,F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[], transformation_exponent_v::Vector{Int}=Int[]) =
+    RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian, additional_symmetries, transformation_exponent_v)
 
 # At times we will want to be able to specify which states are used as the
 # representative ones (e.g. if we are loading the results of a previous

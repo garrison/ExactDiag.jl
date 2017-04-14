@@ -19,6 +19,38 @@ let
     @test operator_matrix(hs, apply_σz, 1) * operator_matrix(hs, apply_σz, 2) == spdiagm([1, -1, -1, 1])
 end
 
+# Test that spin operators have commutation relations as expected.
+commutator(a,b) = a*b - b*a
+anticommutator(a,b) = a*b + b*a
+function test_pauli_commutation_relations(lattice)
+    hs = SpinHalfHilbertSpace(lattice)
+    seed_state!(hs, 0)
+
+    # Populate all states
+    operator_matrix(hs, spin_half_hamiltonian(h_x=1))
+    @assert length(hs.indexer) == 2 ^ length(lattice)
+
+    apply_sigma = [apply_σx, apply_σy, apply_σz]
+    δ(i,j) = i == j ? 1 : 0
+    for i in 1:length(lattice)
+        σ_i = [operator_matrix(hs, apply_sigma[a], i) for a in 1:3]
+        for j in 1:length(lattice)
+            σ_j = [operator_matrix(hs, apply_sigma[a], j) for a in 1:3]
+            for a in 1:3
+                @test commutator(σ_i[a], σ_j[rem(a, 3) + 1]) == 2 * im * σ_j[rem(a + 1, 3) + 1] * δ(i,j)
+            end
+        end
+        for a in 1:3
+            for b in 1:3
+                @test anticommutator(σ_i[a], σ_i[b]) == 2 * eye(length(hs.indexer)) * δ(a,b)
+            end
+        end
+    end
+end
+test_pauli_commutation_relations(ChainLattice([1]))
+test_pauli_commutation_relations(ChainLattice([4]))
+test_pauli_commutation_relations(SquareLattice([2,2]))
+
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz, expected_SzSz, expected_SpSm)
     h_z = [-0.9994218963834927, -0.49906680067568954, 0.3714572638372098, 0.9629810631305735, 0.19369581339829733, -0.7411831242535816, -0.061683656841222456, 0.30784629029574884, -0.42077926330644844, 0.25473615736727395, 0.12683294253359123, -0.6640580830314939]
     apply_hamiltonian = spin_half_hamiltonian(J1=1, h_z=h_z)

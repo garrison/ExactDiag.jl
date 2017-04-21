@@ -102,7 +102,7 @@ immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     direction::Int
     cache::Vector{Tuple{Int,Rational{Int}}}
 
-    function HilbertSpaceTranslationCache(hs, direction)
+    function (::Type{HilbertSpaceTranslationCache{HilbertSpaceType}}){HilbertSpaceType}(hs, direction)
         ltrc = LatticeTranslationCache(hs.lattice, direction)
         cache = Tuple{Int,Rational{Int}}[]
         @assert length(hs.indexer) > 0
@@ -112,7 +112,7 @@ immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
             j += 1
             push!(cache, translateη(hs, ltrc, j))
         end
-        new(hs, Int(direction), cache)
+        new{HilbertSpaceType}(hs, Int(direction), cache)
     end
 end
 

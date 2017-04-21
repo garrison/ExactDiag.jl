@@ -26,7 +26,7 @@ end
 immutable Tracer{StateType<:AbstractVector}
     sectors::Vector{TracerSector{StateType}}
 
-    function Tracer(_sites_A::AbstractVector{Int}, nsites::Int, basis)
+    function (::Type{Tracer{StateType}}){StateType}(_sites_A::AbstractVector{Int}, nsites::Int, basis)
         all(0 .< _sites_A .<= nsites) || throw(ArgumentError("Subsystem contains sites that do not exist in the system."))
 
         # This first line fixes things up if we specify a site twice
@@ -117,7 +117,7 @@ immutable Tracer{StateType<:AbstractVector}
         end
         @assert isempty(remaining_B)
 
-        return new(sectors)
+        return new{StateType}(sectors)
     end
 end
 

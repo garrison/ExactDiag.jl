@@ -90,9 +90,9 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     # the original state)
     additional_symmetry_periods::Vector{Int}
 
-    function RepresentativeStateTable{F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function,
-                                                   additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[],
-                                                   transformation_exponent_v::Vector{Int}=Int[])
+    function (::Type{RepresentativeStateTable{HilbertSpaceType}}){HilbertSpaceType,F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function,
+                                                                                                additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[],
+                                                                                                transformation_exponent_v::Vector{Int}=Int[])
         for (symm_func, symm_period) in additional_symmetries
             @assert symm_period > 0
         end
@@ -219,7 +219,7 @@ immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
         # representative_index is 0 anymore.
 
         additional_symmetry_periods = [symm_period for (symm_func, symm_period) in additional_symmetries]
-        return new(hs, apply_hamiltonian, transformation_exponent_v, state_info_v, representative_state_indices, sector_count, additional_symmetry_periods)
+        return new{HilbertSpaceType}(hs, apply_hamiltonian, transformation_exponent_v, state_info_v, representative_state_indices, sector_count, additional_symmetry_periods)
     end
 end
 
@@ -325,11 +325,11 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     # Allows us to explicitly construct \ket{r_k} from \ket{r}
     coefficient_v::Vector{Tuple{Int, Int, Complex128}}
 
-    function DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpaceType},
-                                   sector_index::Int,
-                                   momentum_index::Int,
-                                   reduced_indexer::IndexedArray{Int},
-                                   additional_symmetry_indices::Vector{Int}=Int[])
+    function (::Type{DiagonalizationSector{HilbertSpaceType}}){HilbertSpaceType}(state_table::RepresentativeStateTable{HilbertSpaceType},
+                                                                                 sector_index::Int,
+                                                                                 momentum_index::Int,
+                                                                                 reduced_indexer::IndexedArray{Int},
+                                                                                 additional_symmetry_indices::Vector{Int}=Int[])
         @assert 0 < sector_index <= state_table.sector_count
         @assert 0 < momentum_index <= nmomenta(state_table.hs.lattice)
 
@@ -427,7 +427,7 @@ immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
         # searchsorted().
         sort!(coefficient_v)
 
-        return new(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
+        return new{HilbertSpaceType}(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
     end
 end
 

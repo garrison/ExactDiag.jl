@@ -199,7 +199,8 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
 
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
 
-    # Determine the energy of each possible band filling
+    # Determine the energy and momentum of each possible band filling.  Store
+    # everything in the `band_fillings` dict, which is keyed by total momentum.
     @assert isbravais(lattice)
     band_fillings = Dict{Vector{Rational{Int}}, Vector{Tuple{Float64, Vector{Int}, Vector{Int}}}}()
     for filled_k_up_indices in combinations(eachmomentumindex(lattice), N_up)
@@ -216,7 +217,8 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     end
     @assert length(band_fillings) == nmomenta(lattice)
 
-    # Sort by energy at each momentum
+    # Sort by energy at each momentum.  This will help us soon determine
+    # nearly-adjacent energy levels.
     for v in values(band_fillings)
         sort!(v, by=(x -> x[1]))
     end
@@ -266,14 +268,14 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
                 i_check += 1
                 @assert i == i_check
 
-                ψ = get_full_psi(diagsect, evecs[:,i])
+                ψ = get_full_psi(diagsect, @view evecs[:,i])
                 # Project ψ into the subspace of Slater determinant eigenstates
                 # at this energy.  It should remain unchanged by this
                 # projection.
                 ϕ = zeros(ψ)
                 for j in degenerate_range
-                    slater_wf = slater_wfs[k_idx][:,j]
-                    ϕ += slater_wf * dot(slater_wf, ψ)
+                    slater_wf = @view slater_wfs[k_idx][:,j]
+                    ϕ .+= slater_wf .* dot(slater_wf, ψ)
                 end
                 @test_approx_eq_eps ϕ ψ 1e-10
             end

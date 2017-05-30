@@ -122,6 +122,7 @@ translateη(tc::HilbertSpaceTranslationCache, j::Integer) = tc.cache[j]
 
 include("spinhalf.jl")
 include("hubbard.jl")
+include("bosons.jl")
 
 include("abelian.jl")
 
@@ -169,6 +170,9 @@ export
     HubbardParameters,
     hubbard_hamiltonian,
     spinflipη,
+    BosonHilbertSpace,
+    BosonParameters,
+    boson_hamiltonian,
     RepresentativeStateTable,
     DiagonalizationSector,
     apply_reduced_hamiltonian,

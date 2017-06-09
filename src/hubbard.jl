@@ -1,4 +1,4 @@
-@compat const HubbardStateType = Vector{Int}
+const HubbardStateType = Vector{Int}
 
 immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace{HubbardStateType}
     lattice::LatticeType

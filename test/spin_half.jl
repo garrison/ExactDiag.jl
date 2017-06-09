@@ -61,7 +61,7 @@ function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz, expected
     #rv = eigs(Hermitian(mat), nev=1, which=:SR)
     evals, evecs = eigs(mat, which=:SR)
     for (i, eval) in enumerate(evals)
-        @test_approx_eq_eps (sum(mat * evecs[:,i] - eval * evecs[:,i])) 0 1e-10
+        @test sum(mat * evecs[:,i] - eval * evecs[:,i]) ≈ 0 atol=1e-10
     end
 
     # Test GS energy
@@ -70,11 +70,11 @@ function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz, expected
     # Test some correlators in the GS
     evec = evecs[:,1]
     for x1 in 1:length(lattice)
-        @test_approx_eq_eps expectval(hs, evec, apply_Sz, x1) expected_Sz[x1] 1e-10
+        @test expectval(hs, evec, apply_Sz, x1) ≈ expected_Sz[x1] atol=1e-10
         for x2 in 1:length(lattice)
-            @test_approx_eq_eps expectval(hs, evec, apply_SzSz, x1, x2) expected_SzSz[x1, x2] 1e-10
-            @test_approx_eq_eps expectval(hs, evec, apply_SpSm, x1, x2) expected_SpSm[x1, x2] 1e-10
-            x1 != x2 && @test_approx_eq_eps expectval(hs, evec, apply_SmSp, x2, x1) expected_SpSm[x1, x2] 1e-10
+            @test expectval(hs, evec, apply_SzSz, x1, x2) ≈ expected_SzSz[x1, x2] atol=1e-10
+            @test expectval(hs, evec, apply_SpSm, x1, x2) ≈ expected_SpSm[x1, x2] atol=1e-10
+            x1 != x2 && @test expectval(hs, evec, apply_SmSp, x2, x1) ≈ expected_SpSm[x1, x2] atol=1e-10
         end
     end
 end

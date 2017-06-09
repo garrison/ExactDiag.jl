@@ -4,14 +4,13 @@ module ExactDiag
 
 using Bravais
 using IndexedArrays
-using Compat
 using SortingAlgorithms
 using JLD
 
 import Base: length, checkbounds
 import Bravais: translateη
 
-@compat abstract type HilbertSpace{StateType} end
+abstract type HilbertSpace{StateType} end
 
 statetype{StateType}(::HilbertSpace{StateType}) = StateType
 

@@ -1,6 +1,5 @@
-julia 0.5
-Compat 0.21.0
-Bravais
+julia 0.6-rc2
 IndexedArrays
+Bravais
 SortingAlgorithms
 JLD

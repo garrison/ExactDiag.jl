@@ -2,7 +2,6 @@ using IndexedArrays
 using Bravais
 using ExactDiag
 
-using Compat
 using JLD
 using Combinatorics
 

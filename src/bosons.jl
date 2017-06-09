@@ -1,4 +1,4 @@
-@compat const BosonStateType = Vector{Int}
+const BosonStateType = Vector{Int}
 
 immutable BosonHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{BosonStateType}} <: HilbertSpace{BosonStateType}
     lattice::LatticeType

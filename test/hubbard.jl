@@ -54,7 +54,7 @@ function test_1d_hubbard_symmetries{F<:Function}(lattice, symmetries::Vector{Tup
                 eval = evals[i]
                 evec = evecs[:,i]
                 ψ = get_full_psi(diagsect, evec)
-                @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
+                @test eigenstate_badness(full_ham, eval, ψ) ≈ 0 atol=1e-8
             end
         end
     end
@@ -259,7 +259,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
         evals, evecs = fact[:values], fact[:vectors]
 
         # Check the energies
-        @test_approx_eq_eps evals slater_energies 1e-10
+        @test evals ≈ slater_energies atol=1e-10
 
         # Check the overlaps
         i_check = 0
@@ -277,7 +277,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
                     slater_wf = @view slater_wfs[k_idx][:,j]
                     ϕ .+= slater_wf .* dot(slater_wf, ψ)
                 end
-                @test_approx_eq_eps ϕ ψ 1e-10
+                @test ϕ ≈ ψ atol=1e-10
             end
         end
         @test i_check == length(evals)
@@ -323,7 +323,7 @@ function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # d
                 evec = evecs[:,i]
                 ψ = get_full_psi(diagsect, evec)
 
-                @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
+                @test eigenstate_badness(full_ham, eval, ψ) ≈ 0 atol=1e-8
 
                 if i == 1
                     let L = length(lattice)
@@ -331,7 +331,7 @@ function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # d
                             ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
                             ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
                             if ndimensions(hs.lattice) == 1
-                                @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
+                                @test ent_cut1 ≈ ent_cut2 atol=1e-8
                             end
                         end
                     end

@@ -25,8 +25,8 @@ let
             evec = evecs[:,i]
             ψ = get_full_psi(diagsect, evec)
 
-            @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
-            @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, ψ) 0 1e-8
+            @test eigenstate_badness(full_ham, eval, ψ) ≈ 0 atol=1e-8
+            @test eigenstate_badness(hs, apply_hamiltonian, eval, ψ) ≈ 0 atol=1e-8
             check_eigenstate(full_ham, eval, ψ)
             @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
 
@@ -35,7 +35,7 @@ let
                     ent_cut1 = entanglement_entropy(Tracer(hs, 1:L_A), ψ)
                     ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
                     # FIXME: test against known results
-                    @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
+                    @test ent_cut1 ≈ ent_cut2 atol=1e-8
                 end
             end
         end

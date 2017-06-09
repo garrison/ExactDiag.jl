@@ -41,12 +41,12 @@ let
                 evec = evecs[:,i]
                 ψ = get_full_psi(diagsect, evec)
 
-                @test_approx_eq_eps eigenstate_badness(full_ham, eval, ψ) 0 1e-8
-                @test_approx_eq_eps eigenstate_badness(hs, apply_hamiltonian, eval, ψ) 0 1e-8
+                @test eigenstate_badness(full_ham, eval, ψ) ≈ 0 atol=1e-8
+                @test eigenstate_badness(hs, apply_hamiltonian, eval, ψ) ≈ 0 atol=1e-8
                 check_eigenstate(full_ham, eval, ψ)
                 @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
 
-                @test_approx_eq_eps dot(ψ, full_op * ψ) dot(evec, reduced_op * evec) 1e-10
+                @test dot(ψ, full_op * ψ) ≈ dot(evec, reduced_op * evec) atol=1e-10
 
                 let
                     # FIXME: could use a higher level abstraction for this pattern!
@@ -55,7 +55,7 @@ let
                         vecdot(ρ_A', subsystem3_H_A[sect]) # trace product
                     end
                     exv2 = dot(evec, reduced_H_A_3 * evec)
-                    @test_approx_eq_eps exv1 exv2 1e-10
+                    @test exv1 ≈ exv2 atol=1e-10
                 end
 
                 if i == 1
@@ -64,8 +64,8 @@ let
                         ent_cut2 = entanglement_entropy(Tracer(hs, 1:L-L_A), ψ)
                         ent_cut1_dm = entanglement_entropy(Tracer(hs, 1:L_A), ψ * ψ')
                         # FIXME: test against known results
-                        @test_approx_eq_eps ent_cut1 ent_cut2 1e-8
-                        @test_approx_eq_eps ent_cut1 ent_cut1_dm 1e-12
+                        @test ent_cut1 ≈ ent_cut2 atol=1e-8
+                        @test ent_cut1 ≈ ent_cut1_dm atol=1e-12
                     end
                 end
             end

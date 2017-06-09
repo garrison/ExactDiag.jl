@@ -259,7 +259,7 @@ end
 
 function spinflipη(hs::SpinHalfHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, [x ⊻ 1 for x in state])
+    i = findfirst!(hs.indexer, map(x -> x ⊻ 1, state))
     return i, 0//1
 end
 

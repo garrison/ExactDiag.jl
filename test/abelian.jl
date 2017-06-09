@@ -5,8 +5,7 @@ let
     L = 8
     lattice = ChainLattice([L])
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
-    indexer = IndexedArray{Vector{Int}}()
-    hs = SpinHalfHilbertSpace(lattice, indexer)
+    hs = SpinHalfHilbertSpace(lattice)
     seed_state!(hs, div(L, 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
     @test rst.state_info_v[findfirst(hs.indexer, [1,1,1,0,1,0,0,0])].representative_index == rst.state_info_v[findfirst(hs.indexer, [0,1,1,1,0,1,0,0])].representative_index
@@ -43,5 +42,5 @@ let
             @test evals[1] ≈ -3.651093408937176
         end
     end
-    @test processed_length == length(indexer)
+    @test processed_length == length(hs.indexer)
 end

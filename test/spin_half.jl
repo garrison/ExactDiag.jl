@@ -142,8 +142,7 @@ end
 
 function test_1d_translation_invariant_hamiltonian(lattice)
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
-    indexer = IndexedArray{Vector{Int}}()
-    hs = SpinHalfHilbertSpace(lattice, indexer)
+    hs = SpinHalfHilbertSpace(lattice)
     seed_state!(hs, div(length(lattice), 2))
     mat = operator_matrix(hs, apply_hamiltonian)
     @test ishermitian(mat)

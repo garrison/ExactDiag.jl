@@ -244,7 +244,7 @@ function seed_state!(hs::SpinHalfHilbertSpace, N_up::Integer)
     return hs
 end
 
-# seed_state, conserves_sz
+# conserves_sz
 
 function translateη(hs::SpinHalfHilbertSpace, ltrc::LatticeTranslationCache, j::Integer)
     @assert hs.lattice === ltrc.lattice

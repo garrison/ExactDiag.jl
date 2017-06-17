@@ -55,7 +55,7 @@ function phase_tracker(state::Vector, x1::Integer, x2::Integer)
 
     rv = 0
     for i in x1+1:x2-1
-        rv = rv ⊻ state[i]
+        rv ⊻= state[i]
     end
     return rv
 end
@@ -317,10 +317,10 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
     end
     state = zeros(Int, length(hs.lattice))
     for i in 1:N_up
-        state[i] = state[i] ⊻ 1
+        state[i] ⊻= 1
     end
     for i in 1:N_dn
-        state[i] = state[i] ⊻ 2
+        state[i] ⊻= 2
     end
     findfirst!(hs.indexer, state)
     return hs
@@ -335,12 +335,12 @@ function permutation_parity(perm::Vector{Int})
         j = i
         while true
             j = perm[j]
-            parity = parity ⊻ 1
+            parity ⊻= 1
             @assert !inspected[j]
             inspected[j] = true
             j == i && break
         end
-        parity = parity ⊻ 1
+        parity ⊻= 1
     end
     return parity
 end
@@ -359,7 +359,7 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
             if state[i] & bit != 0
                 new_site_index, η = translateη(ltrc, i)
                 @assert 0 < new_site_index <= sz
-                newstate[new_site_index] = newstate[new_site_index] ⊻ bit
+                newstate[new_site_index] ⊻= bit
                 push!(cdagger, new_site_index)
                 phase -= η
             end
@@ -367,7 +367,7 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
 
         # Determine the parity of the permutation that orders them
         perm = sortperm(cdagger, alg=TimSort)
-        parity = parity ⊻ permutation_parity(perm)
+        parity ⊻= permutation_parity(perm)
     end
 
     @assert parity == 0 || parity == 1
@@ -401,6 +401,6 @@ end
 
 function particleholeη(hs::HubbardHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, [x ⊻ 3 for x in state])
+    i = findfirst!(hs.indexer, map(x -> x ⊻ 3, state))
     return i, 0//1
 end

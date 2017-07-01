@@ -19,8 +19,7 @@ end
 let
     lattice = ChainLattice([8])
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
-    indexer = IndexedArray{Vector{Int}}()
-    hs = SpinHalfHilbertSpace(lattice, indexer)
+    hs = SpinHalfHilbertSpace(lattice)
     seed_state!(hs, div(length(lattice), 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
 

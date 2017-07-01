@@ -1,8 +1,8 @@
-immutable TracerSector{StateType<:AbstractVector}
+immutable TracerSector{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
     # The indexed states in each subregion.  These define what is
     # meant by idx_A and idx_B below.
-    indexer_A::IndexedArray{StateType}
-    indexer_B::IndexedArray{StateType}
+    indexer_A::IndexedArray{StateTypeA}
+    indexer_B::IndexedArray{StateTypeB}
 
     # Quick lookup of what states are compatible with a given idx_A:
     # by_A[idx_A] contains (idx_B, idx) for each state that looks like
@@ -23,23 +23,21 @@ immutable TracerSector{StateType<:AbstractVector}
     original_basis_length::Int
 end
 
-immutable Tracer{StateType<:AbstractVector}
-    sectors::Vector{TracerSector{StateType}}
+immutable Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
+    sectors::Vector{TracerSector{StateType,StateTypeA,StateTypeB}}
 
-    function (::Type{Tracer{StateType}}){StateType}(_sites_A::AbstractVector{Int}, nsites::Int, basis)
-        all(0 .< _sites_A .<= nsites) || throw(ArgumentError("Subsystem contains sites that do not exist in the system."))
-
-        # This first line fixes things up if we specify a site twice
-        # in sites_A, or if it's not ordered.
-        sites_A = filter(i -> (i in _sites_A), 1:nsites)
-        sites_B = filter(i -> !(i in sites_A), 1:nsites)
+    function (::Type{Tracer{StateType,StateTypeA,StateTypeB}}){StateType,StateTypeA,StateTypeB}(sites_A::AbstractVector{Int}, sites_B::AbstractVector{Int}, basis::AbstractVector{StateType})
+        nsites = length(sites_A) + length(sites_B)
+        # See julia commit 1a28512e1b6cd8a for why array != range
+        sort([sites_A; sites_B]) == [1:nsites;] || throw(ArgumentError("All sites must be accounted for"))
 
         # First figure out and organize all the basis states in A and
         # B, without regard to sector
-        preliminary_indexer_A = IndexedArray{StateType}()
-        preliminary_indexer_B = IndexedArray{StateType}()
+        preliminary_indexer_A = IndexedArray{StateTypeA}()
+        preliminary_indexer_B = IndexedArray{StateTypeB}()
         preliminary_backmap = Tuple{Int, Int}[]
         for state in basis
+            length(state) == nsites || throw(ArgumentError("Invalid basis for the given number of sites"))
             idx_A = findfirst!(preliminary_indexer_A, state[sites_A])
             idx_B = findfirst!(preliminary_indexer_B, state[sites_B])
             push!(preliminary_backmap, (idx_A, idx_B))
@@ -52,15 +50,15 @@ immutable Tracer{StateType<:AbstractVector}
         end
 
         # Now figure out the independent sectors
-        sectors = TracerSector{StateType}[]
+        sectors = TracerSector{StateType,StateTypeA,StateTypeB}[]
         remaining_A = IntSet(1:length(preliminary_indexer_A))
         remaining_B = IntSet(1:length(preliminary_indexer_B))
         while !isempty(remaining_A)
             @assert !isempty(remaining_B)
 
             # Find all states in the current sector
-            indexer_A_set = Set{StateType}()
-            indexer_B_set = Set{StateType}()
+            indexer_A_set = Set{StateTypeA}()
+            indexer_B_set = Set{StateTypeB}()
             let
                 idx_A_queue = Int[pop!(remaining_A)]
                 idx_B_queue = Int[]
@@ -91,10 +89,8 @@ immutable Tracer{StateType<:AbstractVector}
             end
 
             # Sort things to be a bit more predictable
-            #
-            # XXX: This makes assumptions about StateType that should probably be moved elsewhere.
-            indexer_A = IndexedArray{StateType}(sort!(collect(indexer_A_set), by=(x -> (x...))))
-            indexer_B = IndexedArray{StateType}(sort!(collect(indexer_B_set), by=(x -> (x...))))
+            indexer_A = IndexedArray{StateTypeA}(sort!(collect(indexer_A_set), by=(x -> (x...))))
+            indexer_B = IndexedArray{StateTypeB}(sort!(collect(indexer_B_set), by=(x -> (x...))))
 
             # Construct by_A, by_B, and backmap
             backmap = Tuple{Int, Int, Int}[]
@@ -113,15 +109,36 @@ immutable Tracer{StateType<:AbstractVector}
                 push!(by_B[idx_B], (idx_A, idx))
             end
 
-            push!(sectors, TracerSector(indexer_A, indexer_B, by_A, by_B, backmap, length(basis)))
+            push!(sectors, TracerSector{StateType,StateTypeA,StateTypeB}(indexer_A, indexer_B, by_A, by_B, backmap, length(basis)))
         end
         @assert isempty(remaining_B)
 
-        return new{StateType}(sectors)
+        return new{StateType,StateTypeA,StateTypeB}(sectors)
     end
 end
 
-Tracer(hs::HilbertSpace, sites_A) = Tracer{statetype(hs)}(sites_A, length(hs.lattice), hs.indexer)
+subsystem_statetype(::Type{Vector{T}}, ::Integer) where {T} = Vector{T}
+subsystem_statetype(::Type{SVector{D,T}}, n::Integer) where {D,T} = SVector{n,T}
+
+# XXX NOTE: Not exactly type stable
+function Tracer(hs::HilbertSpace, _sites_A::AbstractVector{Int})
+    nsites = length(hs.lattice)
+
+    all(0 .< _sites_A .<= nsites) || throw(ArgumentError("Subsystem contains sites that do not exist in the system."))
+
+    # This first line fixes things up if we specify a site twice
+    # in sites_A, or if it's not ordered.
+    #
+    # FIXME: Perhaps this outside this function
+    sites_A = filter(i -> (i in _sites_A), 1:nsites)
+    sites_B = filter(i -> !(i in sites_A), 1:nsites)
+
+    StateType = statetype(hs)
+    StateTypeA = subsystem_statetype(StateType, length(sites_A))
+    StateTypeB = subsystem_statetype(StateType, length(sites_B))
+
+    Tracer{statetype(hs),StateTypeA,StateTypeB}(sites_A, sites_B, hs.indexer)
+end
 
 function diagsizes(tracer::Tracer)
     # Returns the number of matrices of each size that must be diagonalized to

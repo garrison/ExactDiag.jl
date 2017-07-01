@@ -4,6 +4,7 @@ module ExactDiag
 
 using Bravais
 using IndexedArrays
+using StaticArrays
 using SortingAlgorithms
 using JLD
 

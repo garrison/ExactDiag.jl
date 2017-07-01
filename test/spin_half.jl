@@ -1,5 +1,5 @@
 let
-    indexer = IndexedArray{Vector{Int}}(Vector{Int}[[1],[0]])
+    indexer = IndexedArray(SVector{1,Int}[[1],[0]])
     hs = SpinHalfHilbertSpace(ChainLattice([1]), indexer)
     @test operator_matrix(hs, apply_σx, 1) == [0 1; 1 0]
     @test operator_matrix(hs, apply_σy, 1) == [0 -im; im 0]
@@ -7,7 +7,7 @@ let
 end
 
 let
-    indexer = IndexedArray{Vector{Int}}(Vector{Int}[[1,1],[0,1],[1,0],[0,0]])
+    indexer = IndexedArray(SVector{2,Int}[[1,1],[0,1],[1,0],[0,0]])
     hs = SpinHalfHilbertSpace(ChainLattice([2]), indexer)
 
     @test operator_matrix(hs, apply_σx, 1) * operator_matrix(hs, apply_σx, 2) + operator_matrix(hs, apply_σy, 1) * operator_matrix(hs, apply_σy, 2) == sparse([3,2],[2,3],[2,2], 4, 4)
@@ -135,7 +135,12 @@ obc_SpSm = [0.88092702265123 -0.262661506108124 0.14116753056054 -0.106499804009
             -0.0157191000551504 0.0186595479705245 -0.0209779658795406 0.0237387702508952 -0.0477428675615197 0.0334449788720193 -0.066080213271577 0.0517904540767088 -0.107709400425106 0.110816804541974 -0.421728143640927 0.703171580607587]
 test_disordered_hamiltonian(ChainLattice([12], diagm([0])), obc_energy, obc_Sz, obc_SzSz, obc_SpSm)
 
-function my_1d_translate(state)
+function my_1d_translate(state::SVector{L,Int})::SVector{L,Int} where {L}
+    unshift(pop(state), state[end])
+end
+
+# XXX: This is now only used in the hubbard tests
+function my_1d_translate(state::Vector{Int})::Vector{Int}
     state = copy(state)
     return unshift!(state, pop!(state))
 end

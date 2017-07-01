@@ -1,3 +1,4 @@
+using StaticArrays
 using IndexedArrays
 using Bravais
 using ExactDiag

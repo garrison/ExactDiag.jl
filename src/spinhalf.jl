@@ -1,13 +1,18 @@
-const SpinHalfStateType = Vector{Int}
+const SpinHalfStateType{L} = SVector{L,Int}
 
-immutable SpinHalfHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType}} <: HilbertSpace{SpinHalfStateType}
+immutable SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType{L}}} <: HilbertSpace{SpinHalfStateType{L}}
     lattice::LatticeType
     indexer::IndexType
+
+    SpinHalfHilbertSpace(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType{L}}} =
+        new{L,LatticeType,IndexType}(lattice, indexer)
 end
 
-SpinHalfHilbertSpace(lattice) = SpinHalfHilbertSpace(lattice, IndexedArray{SpinHalfStateType}())
+# XXX NOTE: not type stable since length(lattice) is not known at compile time
+# (perhaps add an intermediate function that is type stable??)
+SpinHalfHilbertSpace(lattice::AbstractSiteNetwork) = SpinHalfHilbertSpace(lattice, IndexedArray{SpinHalfStateType{length(lattice)}}())
 
-statetype(::SpinHalfHilbertSpace) = SpinHalfStateType
+statetype(::SpinHalfHilbertSpace{L}) where {L} = SpinHalfStateType{L}
 
 get_σz(::SpinHalfHilbertSpace, site_state::Integer) = (site_state << 1) - 1
 get_charge(::SpinHalfHilbertSpace, site_state::Integer) = 0
@@ -15,16 +20,16 @@ get_charge(::SpinHalfHilbertSpace, site_state::Integer) = 0
 get_total_charge(::SpinHalfHilbertSpace, state) = 0 # because we cannot pick up any phase with twisted boundary conditions
 
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    state = copy(hs.indexer[j])
-    state[x1] = state[x1] ⊻ 1
+    state = MVector(hs.indexer[j])
+    state[x1] ⊻= 1
     i = findfirst!(hs.indexer, state)
     f(i, 1)
     nothing
 end
 
 function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    state = copy(hs.indexer[j])
-    state[x1] = state[x1] ⊻ 1
+    state = MVector(hs.indexer[j])
+    state[x1] ⊻= 1
     i = findfirst!(hs.indexer, state)
     f(i, -im * get_σz(hs, state[x1]))
     nothing
@@ -40,9 +45,9 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
     if x1 == x2
         f(j, 1)
     else
-        state = copy(hs.indexer[j])
-        state[x1] = state[x1] ⊻ 1
-        state[x2] = state[x2] ⊻ 1
+        state = MVector(hs.indexer[j])
+        state[x1] ⊻= 1
+        state[x2] ⊻= 1
         i = findfirst!(hs.indexer, state)
         f(i, 1)
     end
@@ -61,10 +66,10 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
     else
         state = hs.indexer[j]
         if state[x1] ⊻ state[x2] == 1
-            state = copy(state)
-            state[x1] = state[x1] ⊻ 1
-            state[x2] = state[x2] ⊻ 1
-            i = findfirst!(hs.indexer, state)
+            other = MVector(state)
+            other[x1] ⊻= 1
+            other[x2] ⊻= 1
+            i = findfirst!(hs.indexer, other)
             f(i, 2)
         end
     end
@@ -80,10 +85,10 @@ function apply_σpσm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
         if x1 == x2
             f(j, 1)
         elseif state[x1] == 0
-            state = copy(state)
-            state[x1] = state[x1] ⊻ 1
-            state[x2] = state[x2] ⊻ 1
-            i = findfirst!(hs.indexer, state)
+            other = MVector(state)
+            other[x1] ⊻= 1
+            other[x2] ⊻= 1
+            i = findfirst!(hs.indexer, other)
             f(i, 1)
         end
     end
@@ -96,10 +101,10 @@ function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
         if x1 == x2
             f(j, 1)
         elseif state[x1] == 1
-            state = copy(state)
-            state[x1] = state[x1] ⊻ 1
-            state[x2] = state[x2] ⊻ 1
-            i = findfirst!(hs.indexer, state)
+            other = MVector(state)
+            other[x1] ⊻= 1
+            other[x2] ⊻= 1
+            i = findfirst!(hs.indexer, other)
             f(i, 1)
         end
     end
@@ -143,9 +148,9 @@ function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
             if x == x_r
                 diagonal += 0.5
             elseif state[x] ⊻ state[x_r] == 1
-                other = copy(state)
-                other[x] = other[x] ⊻ 1
-                other[x_r] = other[x_r] ⊻ 1
+                other = MVector(state)
+                other[x] ⊻= 1
+                other[x_r] ⊻= 1
                 s_i = findfirst!(hs.indexer, other)
                 f(s_i, 0.5)
             end
@@ -232,11 +237,11 @@ function spin_half_hamiltonian(;
     end
 end
 
-function seed_state!(hs::SpinHalfHilbertSpace, N_up::Integer)
+function seed_state!(hs::SpinHalfHilbertSpace{L}, N_up::Integer) where {L}
     if !(0 <= N_up <= length(hs.lattice))
         throw(ArgumentError("Invalid N_up provided for size $(length(hs.lattice)) lattice: $(N_up)"))
     end
-    state = zeros(Int, length(hs.lattice))
+    state = zeros(MVector{L,Int})
     for i in 1:N_up
         state[i] = 1
     end
@@ -246,10 +251,10 @@ end
 
 # conserves_sz
 
-function translateη(hs::SpinHalfHilbertSpace, ltrc::LatticeTranslationCache, j::Integer)
+function translateη(hs::SpinHalfHilbertSpace{L}, ltrc::LatticeTranslationCache, j::Integer) where {L}
     @assert hs.lattice === ltrc.lattice
     oldstate = hs.indexer[j]
-    state = zeros(oldstate)
+    state = zeros(MVector{L,Int})
     for (i, site_state) in enumerate(oldstate)
         j, η = translateη(ltrc, i)
         state[j] = site_state

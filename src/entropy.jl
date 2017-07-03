@@ -1,4 +1,4 @@
-immutable TracerSector{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
+struct TracerSector{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
     # The indexed states in each subregion.  These define what is
     # meant by idx_A and idx_B below.
     indexer_A::IndexedArray{StateTypeA}
@@ -23,7 +23,7 @@ immutable TracerSector{StateType<:AbstractVector,StateTypeA<:AbstractVector,Stat
     original_basis_length::Int
 end
 
-immutable Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
+struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
     sectors::Vector{TracerSector{StateType,StateTypeA,StateTypeB}}
 
     function (::Type{Tracer{StateType,StateTypeA,StateTypeB}}){StateType,StateTypeA,StateTypeB}(sites_A::AbstractVector{Int}, sites_B::AbstractVector{Int}, basis::AbstractVector{StateType})

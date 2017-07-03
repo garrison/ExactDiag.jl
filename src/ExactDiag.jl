@@ -97,7 +97,7 @@ eigenstate_badness{S<:Number}(hs::HilbertSpace, apply_hamiltonian, eigenvalue::R
 
 check_eigenstate(args...; tolerance::Float64=1e-5) = abs(eigenstate_badness(args...)) < tolerance || throw(InexactError())
 
-immutable HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
+struct HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
     direction::Int
     cache::Vector{Tuple{Int,Rational{Int}}}

@@ -14,7 +14,7 @@ end
 my_grow!{T}(vec::AbstractVector{T}, newlen::Integer, value::T=zero(T)) =
     my_grow!(() -> value, vec, newlen)
 
-type StateInfo
+mutable struct StateInfo
     # Currently unused, except in tests.  It can be useful to have
     # this to be able to test if two states are in the same
     # equivalence class, though.  In the future we may be able to
@@ -53,7 +53,7 @@ end
 # By default (if given no transformation_exponent_v), it assumes we can
 # translate in every direction (except those with open boundary conditions) and
 # apply each provided "additional symmetry" operation (e.g. spin flip).
-immutable RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
+struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     # The Hilbert space and the function that applies the Hamiltonian
     #
     # FIXME: Instead of the following two objects separately, maybe we
@@ -304,7 +304,7 @@ end
 # IndexedArray with all such states of nonzero norm in our sector, and
 # a mapping from each such non-representative state to a
 # representative state index (with phase).
-immutable DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
+struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     # NOTE: All fields remains constant after initialization.
 
     state_table::RepresentativeStateTable{HilbertSpaceType}

@@ -1,6 +1,6 @@
 const HubbardStateType = Vector{Int}
 
-immutable HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace{HubbardStateType}
+struct HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace{HubbardStateType}
     lattice::LatticeType
     indexer::IndexType
 end
@@ -133,7 +133,7 @@ function apply_total_pseudospin_operator(f, hs::HubbardHilbertSpace, s_j::Intege
     nothing
 end
 
-immutable HubbardParameters
+struct HubbardParameters
     t::Float64
     U::Float64
     V::Float64

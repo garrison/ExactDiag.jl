@@ -1,6 +1,6 @@
 const SpinHalfStateType{L} = SVector{L,Int}
 
-immutable SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType{L}}} <: HilbertSpace{SpinHalfStateType{L}}
+struct SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType{L}}} <: HilbertSpace{SpinHalfStateType{L}}
     lattice::LatticeType
     indexer::IndexType
 

@@ -1,6 +1,6 @@
 const BosonStateType = Vector{Int}
 
-immutable BosonHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{BosonStateType}} <: HilbertSpace{BosonStateType}
+struct BosonHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{BosonStateType}} <: HilbertSpace{BosonStateType}
     lattice::LatticeType
     indexer::IndexType
 end
@@ -10,7 +10,7 @@ BosonHilbertSpace(lattice) =
 
 statetype(::BosonHilbertSpace) = BosonStateType
 
-immutable BosonParameters
+struct BosonParameters
     J::Float64
     U::Float64
     θ::Float64

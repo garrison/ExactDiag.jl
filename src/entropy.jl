@@ -26,7 +26,7 @@ end
 struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
     sectors::Vector{TracerSector{StateType,StateTypeA,StateTypeB}}
 
-    function (::Type{Tracer{StateType,StateTypeA,StateTypeB}}){StateType,StateTypeA,StateTypeB}(sites_A::AbstractVector{Int}, sites_B::AbstractVector{Int}, basis::AbstractVector{StateType})
+    function Tracer{StateType,StateTypeA,StateTypeB}(sites_A::AbstractVector{Int}, sites_B::AbstractVector{Int}, basis::AbstractVector{StateType}) where {StateType,StateTypeA,StateTypeB}
         nsites = length(sites_A) + length(sites_B)
         # See julia commit 1a28512e1b6cd8a for why array != range
         sort([sites_A; sites_B]) == [1:nsites;] || throw(ArgumentError("All sites must be accounted for"))

@@ -102,7 +102,7 @@ struct HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     direction::Int
     cache::Vector{Tuple{Int,Rational{Int}}}
 
-    function (::Type{HilbertSpaceTranslationCache{HilbertSpaceType}}){HilbertSpaceType}(hs, direction)
+    function HilbertSpaceTranslationCache{HilbertSpaceType}(hs, direction) where {HilbertSpaceType}
         ltrc = LatticeTranslationCache(hs.lattice, direction)
         cache = Tuple{Int,Rational{Int}}[]
         @assert length(hs.indexer) > 0

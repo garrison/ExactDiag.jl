@@ -246,18 +246,8 @@ end
 
 function entanglement_entropy{T<:Real}(eigenvalues::AbstractVector{T}, alpha::Real=1)
     if alpha == 1
-        rv = 0.0
-        for v in eigenvalues
-            v > 0 || continue
-            rv -= v * log(v)
-        end
-        return rv
+        return sum(-v * log(v) for v in eigenvalues if v > 0)
     else
-        s = 0.0
-        for v in eigenvalues
-            v > 0 || continue
-            s += v ^ alpha
-        end
-        return log(s) / (1 - alpha)
+        return log(sum(v ^ alpha for v in eigenvalues if v > 0)) / (1 - alpha)
     end
 end

@@ -131,7 +131,8 @@ function Tracer(hs::HilbertSpace, _sites_A::AbstractVector{Int})
     #
     # FIXME: Perhaps this outside this function
     sites_A = filter(i -> (i in _sites_A), 1:nsites)
-    sites_B = filter(i -> !(i in sites_A), 1:nsites)
+    sites_B = setdiff(1:nsites, sites_A)
+    @assert issorted(sites_B) # will be true according to setdiff docstring
 
     StateType = statetype(hs)
     StateTypeA = subsystem_statetype(StateType, length(sites_A))

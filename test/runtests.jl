@@ -1,5 +1,5 @@
 using StaticArrays
-using IndexedArrays
+using UniqueVectors
 using Bravais
 using ExactDiag
 

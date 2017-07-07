@@ -1,12 +1,12 @@
 const BosonStateType = Vector{Int}
 
-struct BosonHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{BosonStateType}} <: HilbertSpace{BosonStateType}
+struct BosonHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{BosonStateType}} <: HilbertSpace{BosonStateType}
     lattice::LatticeType
     indexer::IndexType
 end
 
 BosonHilbertSpace(lattice) =
-    BosonHilbertSpace(lattice, IndexedArray{BosonStateType}())
+    BosonHilbertSpace(lattice, UniqueVector{BosonStateType}())
 
 statetype(::BosonHilbertSpace) = BosonStateType
 

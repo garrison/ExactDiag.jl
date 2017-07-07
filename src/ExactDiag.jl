@@ -3,7 +3,7 @@ __precompile__()
 module ExactDiag
 
 using Bravais
-using IndexedArrays
+using UniqueVectors
 using StaticArrays
 using SortingAlgorithms
 using JLD

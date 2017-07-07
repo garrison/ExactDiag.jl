@@ -1,16 +1,16 @@
 const SpinHalfStateType{L} = SVector{L,Int}
 
-struct SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType{L}}} <: HilbertSpace{SpinHalfStateType{L}}
+struct SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{SpinHalfStateType{L}}} <: HilbertSpace{SpinHalfStateType{L}}
     lattice::LatticeType
     indexer::IndexType
 
-    SpinHalfHilbertSpace(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{SpinHalfStateType{L}}} =
+    SpinHalfHilbertSpace(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{SpinHalfStateType{L}}} =
         new{L,LatticeType,IndexType}(lattice, indexer)
 end
 
 # XXX NOTE: not type stable since length(lattice) is not known at compile time
 # (perhaps add an intermediate function that is type stable??)
-SpinHalfHilbertSpace(lattice::AbstractSiteNetwork) = SpinHalfHilbertSpace(lattice, IndexedArray{SpinHalfStateType{length(lattice)}}())
+SpinHalfHilbertSpace(lattice::AbstractSiteNetwork) = SpinHalfHilbertSpace(lattice, UniqueVector{SpinHalfStateType{length(lattice)}}())
 
 statetype(::SpinHalfHilbertSpace{L}) where {L} = SpinHalfStateType{L}
 

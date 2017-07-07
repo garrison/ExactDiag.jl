@@ -10,7 +10,7 @@ ExactDiag
 
 Very much a work in progress.
 
-See also: `IndexedArrays <https://github.com/garrison/IndexedArrays.jl>`_, LinTables (coming soon).  And also `Bravais <https://github.com/garrison/Bravais.jl>`_.
+See also: `UniqueVectors <https://github.com/garrison/UniqueVectors.jl>`_, LinTables (coming soon).  And also `Bravais <https://github.com/garrison/Bravais.jl>`_.
 
 Available model systems
 =======================
@@ -90,4 +90,4 @@ NOTE: we want to be able to do both unitaries; transforming to momentum basis, a
 Other code notes
 ================
 
-``IndexedArrays`` is used to assign each state (e.g. ``[1, 0, 1, 1, 0]`` in Julia land) to an index, and vice versa.  Given :math:`M` unique states, the indices will range from :math:`1` to :math:`M`.
+``UniqueVectors`` is used to assign each state (e.g. ``[1, 0, 1, 1, 0]`` in Julia land) to an index, and vice versa.  Given :math:`M` unique states, the indices will range from :math:`1` to :math:`M`.

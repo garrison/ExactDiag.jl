@@ -1,5 +1,5 @@
 let
-    indexer = IndexedArray(SVector{1,Int}[[1],[0]])
+    indexer = UniqueVector(SVector{1,Int}[[1],[0]])
     hs = SpinHalfHilbertSpace(ChainLattice([1]), indexer)
     @test operator_matrix(hs, apply_σx, 1) == [0 1; 1 0]
     @test operator_matrix(hs, apply_σy, 1) == [0 -im; im 0]
@@ -7,7 +7,7 @@ let
 end
 
 let
-    indexer = IndexedArray(SVector{2,Int}[[1,1],[0,1],[1,0],[0,0]])
+    indexer = UniqueVector(SVector{2,Int}[[1,1],[0,1],[1,0],[0,0]])
     hs = SpinHalfHilbertSpace(ChainLattice([2]), indexer)
 
     @test operator_matrix(hs, apply_σx, 1) * operator_matrix(hs, apply_σx, 2) + operator_matrix(hs, apply_σy, 1) * operator_matrix(hs, apply_σy, 2) == sparse([3,2],[2,3],[2,2], 4, 4)

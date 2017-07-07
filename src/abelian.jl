@@ -127,8 +127,8 @@ struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
         CacheType = LatticeTranslationCache{typeof(hs.lattice)}
         ltrc = [transformation_exponent_v[i] != 0 ? Nullable{CacheType}(LatticeTranslationCache(hs.lattice, i)) : Nullable{CacheType}() for i in 1:d]
 
-        transformation_basis_queue = IndexedArray{Int}()
-        hamiltonian_basis_queue = IndexedArray{Int}()
+        transformation_basis_queue = UniqueVector{Int}()
+        hamiltonian_basis_queue = UniqueVector{Int}()
 
         sector_count = 0
         for z in 1:length(hs.indexer)
@@ -301,7 +301,7 @@ end
 # Takes a RepresentativeStateTable, a momentum, and a sector index.
 #
 # Builds up normalization for each representative state, an
-# IndexedArray with all such states of nonzero norm in our sector, and
+# UniqueVector with all such states of nonzero norm in our sector, and
 # a mapping from each such non-representative state to a
 # representative state index (with phase).
 struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
@@ -313,7 +313,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
 
     # Includes only nonzero-normed representative states, and refers to states
     # by their index in the main indexer.
-    reduced_indexer::IndexedArray{Int}
+    reduced_indexer::UniqueVector{Int}
 
     # Contains the (nonzero) norm of each element in reduced_indexer
     norm_v::Vector{Float64}
@@ -328,7 +328,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     function DiagonalizationSector{HilbertSpaceType}(state_table::RepresentativeStateTable{HilbertSpaceType},
                                                      sector_index::Int,
                                                      momentum_index::Int,
-                                                     reduced_indexer::IndexedArray{Int},
+                                                     reduced_indexer::UniqueVector{Int},
                                                      additional_symmetry_indices::Vector{Int}=Int[]) where {HilbertSpaceType}
         @assert 0 < sector_index <= state_table.sector_count
         @assert 0 < momentum_index <= nmomenta(state_table.hs.lattice)
@@ -432,14 +432,14 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
 end
 
 DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, additional_symmetry_indices::Vector{Int}=Int[]) =
-    DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, IndexedArray{Int}(), additional_symmetry_indices)
+    DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, UniqueVector{Int}(), additional_symmetry_indices)
 
 function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{StateType}, additional_symmetry_indices::Vector{Int}=Int[])
     # because I've been unable to figure out how to require this in the method signature
     @assert StateType == statetype(state_table.hs)
 
     indexer = state_table.hs.indexer
-    reduced_indexer = IndexedArray{Int}()
+    reduced_indexer = UniqueVector{Int}()
     #sizehint!(reduced_indexer, length(provided_reduced_indexer))
     for state in provided_reduced_indexer
         i = findfirst!(indexer, state)
@@ -564,12 +564,12 @@ function construct_reduced_indexer(rst::RepresentativeStateTable)
     # does not matter; it simply matters what the representative states look
     # like.
     original_indexer = rst.hs.indexer
-    return IndexedArray{eltype(original_indexer)}([original_indexer[i] for i in rst.representative_state_indices])
+    return UniqueVector{eltype(original_indexer)}([original_indexer[i] for i in rst.representative_state_indices])
 end
 
 function construct_reduced_indexer(diagsect::DiagonalizationSector)
     original_indexer = diagsect.state_table.hs.indexer
-    return IndexedArray{eltype(original_indexer)}([original_indexer[i] for i in diagsect.reduced_indexer])
+    return UniqueVector{eltype(original_indexer)}([original_indexer[i] for i in diagsect.reduced_indexer])
 end
 
 function get_full_psi!(full_psi::Vector{Complex128}, diagsect::DiagonalizationSector, reduced_psi::AbstractVector)

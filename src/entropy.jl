@@ -1,8 +1,8 @@
 struct TracerSector{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:AbstractVector}
     # The indexed states in each subregion.  These define what is
     # meant by idx_A and idx_B below.
-    indexer_A::IndexedArray{StateTypeA}
-    indexer_B::IndexedArray{StateTypeB}
+    indexer_A::UniqueVector{StateTypeA}
+    indexer_B::UniqueVector{StateTypeB}
 
     # Quick lookup of what states are compatible with a given idx_A:
     # by_A[idx_A] contains (idx_B, idx) for each state that looks like
@@ -33,8 +33,8 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
 
         # First figure out and organize all the basis states in A and
         # B, without regard to sector
-        preliminary_indexer_A = IndexedArray{StateTypeA}()
-        preliminary_indexer_B = IndexedArray{StateTypeB}()
+        preliminary_indexer_A = UniqueVector{StateTypeA}()
+        preliminary_indexer_B = UniqueVector{StateTypeB}()
         preliminary_backmap = Tuple{Int, Int}[]
         for state in basis
             length(state) == nsites || throw(ArgumentError("Invalid basis for the given number of sites"))
@@ -89,8 +89,8 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
             end
 
             # Sort things to be a bit more predictable
-            indexer_A = IndexedArray{StateTypeA}(sort!(collect(indexer_A_set), by=(x -> (x...))))
-            indexer_B = IndexedArray{StateTypeB}(sort!(collect(indexer_B_set), by=(x -> (x...))))
+            indexer_A = UniqueVector{StateTypeA}(sort!(collect(indexer_A_set), by=(x -> (x...))))
+            indexer_B = UniqueVector{StateTypeB}(sort!(collect(indexer_B_set), by=(x -> (x...))))
 
             # Construct by_A, by_B, and backmap
             backmap = Tuple{Int, Int, Int}[]

@@ -1,11 +1,11 @@
 const HubbardStateType = Vector{Int}
 
-struct HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractIndexedArray{HubbardStateType}} <: HilbertSpace{HubbardStateType}
+struct HubbardHilbertSpace{LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{HubbardStateType}} <: HilbertSpace{HubbardStateType}
     lattice::LatticeType
     indexer::IndexType
 end
 
-HubbardHilbertSpace(lattice) = HubbardHilbertSpace(lattice, IndexedArray{HubbardStateType}())
+HubbardHilbertSpace(lattice) = HubbardHilbertSpace(lattice, UniqueVector{HubbardStateType}())
 
 # -- 0
 # u- 1

@@ -151,7 +151,7 @@ function diagsizes(tracer::Tracer)
     return rv
 end
 
-function construct_psimat_block!{T<:Number}(psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T})
+function construct_psimat_block!(psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T}) where {T<:Number}
     length(ψ) == ts.original_basis_length || throw(DimensionMismatch("Wavefunction ψ has the wrong number of elements"))
     size(psimat) == (length(ts.indexer_A), length(ts.indexer_B)) || throw(DimensionMismatch("psimat has the wrong size"))
     fill!(psimat, zero(T))
@@ -163,7 +163,7 @@ function construct_psimat_block!{T<:Number}(psimat::Matrix{T}, ts::TracerSector,
     return psimat
 end
 
-function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T})
+function construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T}) where {T<:Number}
     size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
     construct_psimat_block!(psimat, ts, ψ)
     A_mul_Bc!(ρ_A, psimat, psimat)
@@ -172,10 +172,10 @@ function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, psimat::Matri
     return Hermitian(ρ_A)
 end
 
-construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T}) =
+construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T}) where {T<:Number} =
     construct_ρ_A_block!(ρ_A, Array{T}(length(ts.indexer_A), length(ts.indexer_B)), ts, ψ)
 
-function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSector, ρ::AbstractMatrix{T})
+function construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, ts::TracerSector, ρ::AbstractMatrix{T}) where {T<:Number}
     size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(DimensionMismatch("Density matrix ρ has the wrong size"))
     # FIXME: make sure ρ is Hermitian, or require Hermitian type
     size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
@@ -192,7 +192,7 @@ function construct_ρ_A_block!{T<:Number}(ρ_A::AbstractMatrix{T}, ts::TracerSec
     return Hermitian(ρ_A)
 end
 
-function construct_ρ_A_block{T<:Number}(ts::TracerSector, ψ_or_ρ::AbstractVecOrMat{T})
+function construct_ρ_A_block(ts::TracerSector, ψ_or_ρ::AbstractVecOrMat{T}) where {T<:Number}
     M = length(ts.indexer_A)
     return construct_ρ_A_block!(Array{T}(M, M), ts, ψ_or_ρ)
 end
@@ -220,7 +220,7 @@ function myeigvals(mat::Hermitian)
     end
 end
 
-function entanglement_entropy{T<:Number}(tracer::Tracer, ψ_or_ρ::AbstractVecOrMat{T}, alpha::Real=1)
+function entanglement_entropy(tracer::Tracer, ψ_or_ρ::AbstractVecOrMat{<:Number}, alpha::Real=1)
     if alpha == 1
         rv = 0.0
         for sector in tracer.sectors
@@ -244,7 +244,7 @@ function entanglement_entropy{T<:Number}(tracer::Tracer, ψ_or_ρ::AbstractVecOr
     end
 end
 
-function entanglement_entropy{T<:Real}(eigenvalues::AbstractVector{T}, alpha::Real=1)
+function entanglement_entropy(eigenvalues::AbstractVector{<:Real}, alpha::Real=1)
     if alpha == 1
         return sum(-v * log(v) for v in eigenvalues if v > 0)
     else

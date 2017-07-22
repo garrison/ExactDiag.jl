@@ -9,7 +9,7 @@ notifications:
   email: false
 git:
   depth: 99999999
-script:
-  - julia -e 'Pkg.clone("https://github.com/garrison/Bravais.jl.git"); Pkg.clone(pwd()); Pkg.build("ExactDiag"); Pkg.test("ExactDiag"; coverage=true)'
+before_script:
+  - julia -e 'Pkg.clone("https://github.com/garrison/Bravais.jl.git")'
 after_success:
   - julia -e 'cd(Pkg.dir("ExactDiag")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'

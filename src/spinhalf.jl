@@ -4,8 +4,8 @@ struct SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:Abstra
     lattice::LatticeType
     indexer::IndexType
 
-    SpinHalfHilbertSpace(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{SpinHalfStateType{L}}} =
-        new{L,LatticeType,IndexType}(lattice, indexer)
+    SpinHalfHilbertSpace{L,LatticeType,IndexType}(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{SpinHalfStateType{L}}} =
+        new(lattice, indexer)
 end
 
 # XXX NOTE: not type stable since length(lattice) is not known at compile time

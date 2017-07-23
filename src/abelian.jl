@@ -219,7 +219,7 @@ struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
         # representative_index is 0 anymore.
 
         additional_symmetry_periods = [symm_period for (symm_func, symm_period) in additional_symmetries]
-        return new{HilbertSpaceType}(hs, apply_hamiltonian, transformation_exponent_v, state_info_v, representative_state_indices, sector_count, additional_symmetry_periods)
+        return new(hs, apply_hamiltonian, transformation_exponent_v, state_info_v, representative_state_indices, sector_count, additional_symmetry_periods)
     end
 end
 
@@ -427,7 +427,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
         # searchsorted().
         sort!(coefficient_v)
 
-        return new{HilbertSpaceType}(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
+        return new(state_table, sector_index, momentum_index, reduced_indexer, norm_v, representative_v, coefficient_v)
     end
 end
 

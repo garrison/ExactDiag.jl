@@ -113,7 +113,7 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
         end
         @assert isempty(remaining_B)
 
-        return new{StateType,StateTypeA,StateTypeB}(sectors)
+        return new(sectors)
     end
 end
 

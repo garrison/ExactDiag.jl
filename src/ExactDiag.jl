@@ -112,7 +112,7 @@ struct HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
             j += 1
             push!(cache, translateη(hs, ltrc, j))
         end
-        new{HilbertSpaceType}(hs, Int(direction), cache)
+        new(hs, Int(direction), cache)
     end
 end
 

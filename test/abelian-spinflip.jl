@@ -44,7 +44,7 @@ let
                 @test eigenstate_badness(full_ham, eval, ψ) ≈ 0 atol=1e-8
                 @test eigenstate_badness(hs, apply_hamiltonian, eval, ψ) ≈ 0 atol=1e-8
                 check_eigenstate(full_ham, eval, ψ)
-                @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
+                @test_throws CheckEigenstateError check_eigenstate(full_ham, eval + 1, ψ)
 
                 @test dot(ψ, full_op * ψ) ≈ dot(evec, reduced_op * evec) atol=1e-10
 

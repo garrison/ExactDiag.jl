@@ -27,7 +27,7 @@ let
             @test eigenstate_badness(full_ham, eval, ψ) ≈ 0 atol=1e-8
             @test eigenstate_badness(hs, apply_hamiltonian, eval, ψ) ≈ 0 atol=1e-8
             check_eigenstate(full_ham, eval, ψ)
-            @test_throws InexactError check_eigenstate(full_ham, eval + 1, ψ)
+            @test_throws CheckEigenstateError check_eigenstate(full_ham, eval + 1, ψ)
 
             if i == 1
                 for L_A in 0:div(L, 2)

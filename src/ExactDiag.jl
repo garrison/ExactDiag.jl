@@ -89,13 +89,16 @@ expectval(statevectors::AbstractVector{<:AbstractVector}, observable::AbstractMa
 
 expectval(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...) = dot(vec, operator_apply(hs, vec, apply_operator, args...))
 
+struct CheckEigenstateError <: Exception end
+
 eigenstate_badness(hamiltonian::AbstractMatrix{<:Number}, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
     vecnorm(hamiltonian * eigenvector - eigenvalue * eigenvector)
 
 eigenstate_badness(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
     vecnorm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
 
-check_eigenstate(args...; tolerance::Float64=1e-5) = abs(eigenstate_badness(args...)) < tolerance || throw(InexactError())
+check_eigenstate(args...; tolerance::Float64=1e-5) =
+    abs(eigenstate_badness(args...)) < tolerance || throw(CheckEigenstateError())
 
 struct HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     hs::HilbertSpaceType
@@ -140,6 +143,7 @@ export
     operator_matrix,
     expectval,
     eigenstate_badness,
+    CheckEigenstateError,
     check_eigenstate,
     HilbertSpaceTranslationCache,
     statetype,

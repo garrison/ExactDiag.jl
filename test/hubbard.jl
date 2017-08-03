@@ -116,7 +116,7 @@ let
 
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
 
-    # Find the ground state wavefunction
+    # Find the ground state wavefunction via ExactDiag
     local gs_eval, gs_evec
     gs_eval = maxintfloat(Float64) # fixme
     for k_idx in eachmomentumindex(hs.lattice)
@@ -285,7 +285,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
 end
 
 let
-    hypercubic_ϵ(k) = -2 * mapreduce(kα -> cos(2π * kα), +, k)
+    hypercubic_ϵ(k) = -2 * sum(cos(2π * kα) for kα in k)
 
     test_slater_determinants(ChainLattice([6]), 2, 0, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([6]), 3, 3, hypercubic_ϵ)

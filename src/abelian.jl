@@ -1,5 +1,5 @@
 # Because resize! will not do the initialization of new elements for us
-function my_grow!{T,F}(f::F, vec::AbstractVector{T}, newlen::Integer)
+function my_grow!(f, vec::AbstractVector, newlen::Integer)
     diff = newlen - length(vec)
     diff == 0 && return vec
     @assert diff > 0
@@ -11,7 +11,7 @@ function my_grow!{T,F}(f::F, vec::AbstractVector{T}, newlen::Integer)
     return vec
 end
 
-my_grow!{T}(vec::AbstractVector{T}, newlen::Integer, value::T=zero(T)) =
+my_grow!(vec::AbstractVector{T}, newlen::Integer, value::T=zero(T)) where {T} =
     my_grow!(() -> value, vec, newlen)
 
 mutable struct StateInfo
@@ -92,7 +92,7 @@ struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
 
     function RepresentativeStateTable{HilbertSpaceType}(hs::HilbertSpaceType, apply_hamiltonian::Function,
                                                         additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[],
-                                                        transformation_exponent_v::Vector{Int}=Int[]) where {HilbertSpaceType,F<:Function}
+                                                        transformation_exponent_v::Vector{Int}=Int[]) where {HilbertSpaceType<:HilbertSpace,F<:Function}
         for (symm_func, symm_period) in additional_symmetries
             @assert symm_period > 0
         end
@@ -223,14 +223,14 @@ struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-RepresentativeStateTable{HilbertSpaceType<:HilbertSpace,F<:Function}(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{F,Int}}=Tuple{Function,Int}[], transformation_exponent_v::Vector{Int}=Int[]) =
+RepresentativeStateTable(hs::HilbertSpaceType, apply_hamiltonian::Function, additional_symmetries::Vector{Tuple{F,Int}} where {F<:Function} = Tuple{Function,Int}[], transformation_exponent_v::Vector{Int}=Int[]) where {HilbertSpaceType<:HilbertSpace} =
     RepresentativeStateTable{HilbertSpaceType}(hs, apply_hamiltonian, additional_symmetries, transformation_exponent_v)
 
 # At times we will want to be able to specify which states are used as the
 # representative ones (e.g. if we are loading the results of a previous
 # calculation).  This constructor handles this case by immediately modifying
 # the representative states once the state table has been constructed.
-function RepresentativeStateTable{StateType}(hs::HilbertSpace{StateType}, apply_hamiltonian::Function, representative_states::AbstractVector{StateType}, additional_args...)
+function RepresentativeStateTable(hs::HilbertSpace{StateType}, apply_hamiltonian::Function, representative_states::AbstractVector{StateType}, additional_args...) where {StateType}
     state_table = RepresentativeStateTable(hs, apply_hamiltonian, additional_args...)
 
     # Now we just need to set the representative states to those given
@@ -258,7 +258,7 @@ function RepresentativeStateTable{StateType}(hs::HilbertSpace{StateType}, apply_
     return state_table
 end
 
-function iterate_transformations{F}(f::F, state_table::RepresentativeStateTable, z::Integer, bounds::Vector{Int})
+function iterate_transformations(f, state_table::RepresentativeStateTable, z::Integer, bounds::Vector{Int})
     dd = length(bounds) # i.e. number of dimensions plus number of additional symmetry operations
 
     # NOTE: iteration_helper[dd] will *only* ever be incremented in the dd
@@ -329,7 +329,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                                                      sector_index::Int,
                                                      momentum_index::Int,
                                                      reduced_indexer::UniqueVector{Int},
-                                                     additional_symmetry_indices::Vector{Int}=Int[]) where {HilbertSpaceType}
+                                                     additional_symmetry_indices::Vector{Int}=Int[]) where {HilbertSpaceType<:HilbertSpace}
         @assert 0 < sector_index <= state_table.sector_count
         @assert 0 < momentum_index <= nmomenta(state_table.hs.lattice)
 
@@ -431,13 +431,10 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-DiagonalizationSector{HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, additional_symmetry_indices::Vector{Int}=Int[]) =
+DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, additional_symmetry_indices::Vector{Int}=Int[]) where {HilbertSpaceType<:HilbertSpace} =
     DiagonalizationSector{HilbertSpaceType}(state_table, sector_index, momentum_index, UniqueVector{Int}(), additional_symmetry_indices)
 
-function DiagonalizationSector{StateType,HilbertSpaceType<:HilbertSpace}(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{StateType}, additional_symmetry_indices::Vector{Int}=Int[])
-    # because I've been unable to figure out how to require this in the method signature
-    @assert StateType == statetype(state_table.hs)
-
+function DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpaceType}, sector_index::Int, momentum_index::Int, provided_reduced_indexer::AbstractVector{StateType}, additional_symmetry_indices::Vector{Int}=Int[]) where {StateType,HilbertSpaceType<:HilbertSpace{StateType}}
     indexer = state_table.hs.indexer
     reduced_indexer = UniqueVector{Int}()
     #sizehint!(reduced_indexer, length(provided_reduced_indexer))

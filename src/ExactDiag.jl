@@ -13,7 +13,7 @@ import Bravais: translateη
 
 abstract type HilbertSpace{StateType} end
 
-statetype{StateType}(::HilbertSpace{StateType}) = StateType
+statetype(::HilbertSpace{StateType}) where {StateType} = StateType
 
 # FIXME: work with BitVector
 
@@ -29,7 +29,7 @@ edapply(f) = f
 Looks up a (possibly site-dependent) parameter.
 """ ->
 getval(v::Number, i::Integer) = v
-getval{T<:Number}(v::Vector{T}, i::Integer) = v[i]
+getval(v::Vector{<:Number}, i::Integer) = v[i]
 
 function exp_2πiη(η::Rational{Int})
     d = denominator(η)
@@ -84,15 +84,15 @@ expectval(statevector::AbstractVector, observable::AbstractMatrix) =
 expectval(statevectors::AbstractMatrix, observable::AbstractMatrix) =
     [expectval(statevectors[:, i], observable) for i in 1:size(statevectors, 2)]
 
-expectval{T<:AbstractVector}(statevectors::AbstractVector{T}, observable::AbstractMatrix) =
+expectval(statevectors::AbstractVector{<:AbstractVector}, observable::AbstractMatrix) =
     [expectval(statevector, observable) for statevector in statevectors]
 
 expectval(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...) = dot(vec, operator_apply(hs, vec, apply_operator, args...))
 
-eigenstate_badness{T<:Number,S<:Number}(hamiltonian::AbstractMatrix{T}, eigenvalue::Real, eigenvector::AbstractVector{S}) =
+eigenstate_badness(hamiltonian::AbstractMatrix{<:Number}, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
     vecnorm(hamiltonian * eigenvector - eigenvalue * eigenvector)
 
-eigenstate_badness{S<:Number}(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{S}) =
+eigenstate_badness(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
     vecnorm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
 
 check_eigenstate(args...; tolerance::Float64=1e-5) = abs(eigenstate_badness(args...)) < tolerance || throw(InexactError())
@@ -116,7 +116,8 @@ struct HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}
     end
 end
 
-HilbertSpaceTranslationCache{HilbertSpaceType<:HilbertSpace}(hs::HilbertSpaceType, direction::Integer) = HilbertSpaceTranslationCache{HilbertSpaceType}(hs, direction)
+HilbertSpaceTranslationCache(hs::HilbertSpaceType, direction::Integer) where {HilbertSpaceType<:HilbertSpace} =
+    HilbertSpaceTranslationCache{HilbertSpaceType}(hs, direction)
 
 translateη(tc::HilbertSpaceTranslationCache, j::Integer) = tc.cache[j]
 

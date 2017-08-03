@@ -29,7 +29,7 @@ end
 test_1d_hubbard_hamiltonian(ChainLattice([8]))
 
 # With abelian symmetries (this one always assumes half filling)
-function test_1d_hubbard_symmetries{F<:Function}(lattice, symmetries::Vector{Tuple{F,Int}})
+function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} where {F<:Function})
     L = length(lattice)
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, div(L, 2), div(L, 2))
@@ -177,7 +177,7 @@ let
 end
 
 # Slater determinants for all eigenstates
-function degenerate_ranges{T<:Real}(v::AbstractVector{T}, tol::T)
+function degenerate_ranges(v::AbstractVector{T}, tol::T) where {T<:Real}
     @assert issorted(v)
     diffs = v[2:end] - v[1:end-1]
     indices = find(diffs) do d

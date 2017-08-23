@@ -353,6 +353,6 @@ test_hubbard_abelian_spinflip(ChainLattice([4], diagm([4]), [1//5]), 2, t2=0.2, 
 
 test_hubbard_abelian_spinflip(SquareLattice([2,3]), 3)
 test_hubbard_abelian_spinflip(TriangularLattice([2,3]), 3)
-# NOTE: The triangular lattice does not (yet) implement next-nearest
+# NOTE: The cubic lattice does not (yet) implement next-nearest
 # neighbors, so this should fail.
-@test_throws MethodError test_hubbard_abelian_spinflip(TriangularLattice([2,3]), 3, t2=0.2)
+@test_throws MethodError test_hubbard_abelian_spinflip(CubicLattice([2,3,2]), 3, t2=0.2)

@@ -109,7 +109,7 @@ end
 # explicit Slater determinant for ground state
 let
     L = 6
-    lattice = ChainLattice([6])
+    lattice = ChainLattice([L])
     apply_hamiltonian = hubbard_hamiltonian(t=1)
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, div(L, 2), div(L, 2))
@@ -165,8 +165,8 @@ let
         end
 
         # Normalize properly
-        mat1 /= sqrt(6)
-        mat2 /= sqrt(6)
+        mat1 /= √L
+        mat2 /= √L
 
         slater[i] = det(mat1) * det(mat2)
     end

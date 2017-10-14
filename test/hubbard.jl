@@ -42,7 +42,7 @@ function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} wh
     symmbounds = (repeat([2], inner=[length(symmetries)])...)
     for k_idx in eachmomentumindex(hs.lattice)
         for symm_idx in 1:2*length(symmetries)
-            symm = [ind2sub(symmbounds, symm_idx)...] - 1
+            symm = [ind2sub(symmbounds, symm_idx)...] .- 1
             diagsect = DiagonalizationSector(rst, 1, k_idx, symm)
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
@@ -183,7 +183,7 @@ function degenerate_ranges(v::AbstractVector{T}, tol::T) where {T<:Real}
     indices = find(diffs) do d
         d > tol
     end
-    return UnitRange{Int}[x:y for (x, y) in zip([1; indices + 1], [indices; length(v)])]
+    return UnitRange{Int}[x:y for (x, y) in zip([1; indices .+ 1], [indices; length(v)])]
 end
 
 @test degenerate_ranges([1,2,3,4.0], 0.5) == UnitRange{Int}[1:1, 2:2, 3:3, 4:4]

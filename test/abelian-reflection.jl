@@ -11,7 +11,7 @@ let L = 10
 
     k_values = [0]
     rem(L, 2) == 0 && push!(k_values, div(L, 2)) # momentum π, if available
-    for k_idx in k_values+1
+    for k_idx in k_values .+ 1
         for reflection_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [reflection_idx])
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))

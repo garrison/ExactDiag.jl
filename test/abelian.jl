@@ -8,8 +8,8 @@ let
     hs = SpinHalfHilbertSpace(lattice)
     seed_state!(hs, div(L, 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
-    @test rst.state_info_v[findfirst(hs.indexer, [1,1,1,0,1,0,0,0])].representative_index == rst.state_info_v[findfirst(hs.indexer, [0,1,1,1,0,1,0,0])].representative_index
-    @test rst.state_info_v[findfirst(hs.indexer, [1,1,1,0,1,0,0,0])].representative_index != rst.state_info_v[findfirst(hs.indexer, [0,1,1,1,0,0,1,0])].representative_index
+    @test rst.state_info_v[findfirst(equalto([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index == rst.state_info_v[findfirst(equalto([0,1,1,1,0,1,0,0]), hs.indexer)].representative_index
+    @test rst.state_info_v[findfirst(equalto([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index != rst.state_info_v[findfirst(equalto([0,1,1,1,0,0,1,0]), hs.indexer)].representative_index
 
     full_ham = operator_matrix(hs, apply_hamiltonian)
 

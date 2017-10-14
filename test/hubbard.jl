@@ -87,19 +87,19 @@ let
     hs = HubbardHilbertSpace(lattice)
     push!(hs.indexer, [0, 0, 3, 1, 0, 2])
     t1, η1 = translateη(hs, ltrc, 1)
-    @test t1 == findfirst(hs.indexer, [2, 0, 0, 3, 1, 0]) == 2
+    @test t1 == findfirst(equalto([2, 0, 0, 3, 1, 0]), hs.indexer) == 2
     @test η1 == 5//14
     t2, η2 = translateη(hs, ltrc, 2)
-    @test t2 == findfirst(hs.indexer, [0, 2, 0, 0, 3, 1]) == 3
+    @test t2 == findfirst(equalto([0, 2, 0, 0, 3, 1]), hs.indexer) == 3
     @test η2 == 0//1
     t3, η3 = translateη(hs, ltrc, 3)
-    @test t3 == findfirst(hs.indexer, [1, 0, 2, 0, 0, 3]) == 4
+    @test t3 == findfirst(equalto([1, 0, 2, 0, 0, 3]), hs.indexer) == 4
     @test η3 == 5//14
     t4, η4 = translateη(hs, ltrc, 4)
-    @test t4 == findfirst(hs.indexer, [3, 1, 0, 2, 0, 0]) == 5
+    @test t4 == findfirst(equalto([3, 1, 0, 2, 0, 0]), hs.indexer) == 5
     @test η4 == -2//7
     t5, η5 = translateη(hs, ltrc, 5)
-    @test t5 == findfirst(hs.indexer, [0, 3, 1, 0, 2, 0]) == 6
+    @test t5 == findfirst(equalto([0, 3, 1, 0, 2, 0]), hs.indexer) == 6
     @test η5 == 0//1
     t6, η6 = translateη(hs, ltrc, 6)
     @test t6 == 1

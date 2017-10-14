@@ -44,7 +44,7 @@ function boson_hamiltonian(p::BosonParameters)
                 other[x] -= 1
                 other[x_r] += 1
                 factor *= √other[x_r]
-                s_i = findfirst!(hs.indexer, other)
+                s_i = findfirst!(equalto(other), hs.indexer)
                 f(s_i, -p.J * factor * phase)
             end
             # Leftward hop
@@ -55,7 +55,7 @@ function boson_hamiltonian(p::BosonParameters)
                 other[x] += 1
                 factor *= √other[x]
                 phase = exp(-im * p.θ * other[x_r])
-                s_i = findfirst!(hs.indexer, other)
+                s_i = findfirst!(equalto(other), hs.indexer)
                 f(s_i, -p.J * factor * phase)
             end
         end
@@ -76,12 +76,12 @@ end
 function seed_state!(hs::BosonHilbertSpace, N::Integer)
     state = zeros(Int, length(hs.lattice))
     state[1] = N # XXX FIXME
-    findfirst!(hs.indexer, state)
+    findfirst!(equalto(state), hs.indexer)
     hs
 end
 
 function reflectionη(hs::BosonHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, reverse(state))
+    i = findfirst!(equalto(reverse(state)), hs.indexer)
     return i, 0//1
 end

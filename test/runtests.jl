@@ -6,7 +6,8 @@ using ExactDiag
 using JLD
 using Combinatorics
 
-using Base.Test
+using Compat
+using Compat.Test
 
 debug = false
 

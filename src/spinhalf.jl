@@ -22,7 +22,7 @@ get_total_charge(::SpinHalfHilbertSpace, state) = 0 # because we cannot pick up 
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = MVector(hs.indexer[j])
     state[x1] ⊻= 1
-    i = findfirst!(hs.indexer, state)
+    i = findfirst!(equalto(state), hs.indexer)
     f(i, 1)
     nothing
 end
@@ -30,7 +30,7 @@ end
 function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = MVector(hs.indexer[j])
     state[x1] ⊻= 1
-    i = findfirst!(hs.indexer, state)
+    i = findfirst!(equalto(state), hs.indexer)
     f(i, -im * get_σz(hs, state[x1]))
     nothing
 end
@@ -48,7 +48,7 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
         state = MVector(hs.indexer[j])
         state[x1] ⊻= 1
         state[x2] ⊻= 1
-        i = findfirst!(hs.indexer, state)
+        i = findfirst!(equalto(state), hs.indexer)
         f(i, 1)
     end
     nothing
@@ -69,7 +69,7 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
             other = MVector(state)
             other[x1] ⊻= 1
             other[x2] ⊻= 1
-            i = findfirst!(hs.indexer, other)
+            i = findfirst!(equalto(other), hs.indexer)
             f(i, 2)
         end
     end
@@ -88,7 +88,7 @@ function apply_σpσm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
             other = MVector(state)
             other[x1] ⊻= 1
             other[x2] ⊻= 1
-            i = findfirst!(hs.indexer, other)
+            i = findfirst!(equalto(other), hs.indexer)
             f(i, 1)
         end
     end
@@ -104,7 +104,7 @@ function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
             other = MVector(state)
             other[x1] ⊻= 1
             other[x2] ⊻= 1
-            i = findfirst!(hs.indexer, other)
+            i = findfirst!(equalto(other), hs.indexer)
             f(i, 1)
         end
     end
@@ -151,7 +151,7 @@ function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
                 other = MVector(state)
                 other[x] ⊻= 1
                 other[x_r] ⊻= 1
-                s_i = findfirst!(hs.indexer, other)
+                s_i = findfirst!(equalto(other), hs.indexer)
                 f(s_i, 0.5)
             end
             # S^z_i S^z_j
@@ -245,7 +245,7 @@ function seed_state!(hs::SpinHalfHilbertSpace{L}, N_up::Integer) where {L}
     for i in 1:N_up
         state[i] = 1
     end
-    findfirst!(hs.indexer, state)
+    findfirst!(equalto(state), hs.indexer)
     return hs
 end
 
@@ -259,17 +259,17 @@ function translateη(hs::SpinHalfHilbertSpace{L}, ltrc::LatticeTranslationCache,
         j, η = translateη(ltrc, i)
         state[j] = site_state
     end
-    return findfirst!(hs.indexer, state), 0//1
+    return findfirst!(equalto(state), hs.indexer), 0//1
 end
 
 function spinflipη(hs::SpinHalfHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, map(x -> x ⊻ 1, state))
+    i = findfirst!(equalto(map(x -> x ⊻ 1, state)), hs.indexer)
     return i, 0//1
 end
 
 function reflectionη(hs::SpinHalfHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, reverse(state))
+    i = findfirst!(equalto(reverse(state)), hs.indexer)
     return i, 0//1
 end

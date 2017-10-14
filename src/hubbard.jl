@@ -74,7 +74,7 @@ function apply_total_spin_operator(f, hs::HubbardHilbertSpace, s_j::Integer)
             elseif (state[x] == 1 && state[x_r] == 2) || (state[x] == 2 && state[x_r] == 1)
                 other = copy(state)
                 other[x], other[x_r] = other[x_r], other[x]
-                s_i = findfirst!(hs.indexer, other)
+                s_i = findfirst!(equalto(other), hs.indexer)
 
                 # figure out whether we need to pick up a phase for the fermions
                 pt = phase_tracker(state, x, x_r)
@@ -111,7 +111,7 @@ function apply_total_pseudospin_operator(f, hs::HubbardHilbertSpace, s_j::Intege
             elseif (state[x] == 0 && state[x_r] == 3) || (state[x] == 3 && state[x_r] == 0)
                 other = copy(state)
                 other[x], other[x_r] = other[x_r], other[x]
-                s_i = findfirst!(hs.indexer, other)
+                s_i = findfirst!(equalto(other), hs.indexer)
 
                 # figure out whether we need to pick up a phase for the fermions
                 pt = phase_tracker(state, x, x_r)
@@ -188,7 +188,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
             other = copy(state)
             other[x_r] -= b_up
             other[x] += b_up
-            s_i = findfirst!(hs.indexer, other)
+            s_i = findfirst!(equalto(other), hs.indexer)
             f(s_i, -t_up * x_r_up_phase * e_iθ)
         end
     end
@@ -198,7 +198,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
             other = copy(state)
             other[x] -= b_up
             other[x_r] += b_up
-            s_i = findfirst!(hs.indexer, other)
+            s_i = findfirst!(equalto(other), hs.indexer)
             f(s_i, -t_up * x_r_up_phase * conj(e_iθ))
         end
     end
@@ -211,7 +211,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
             other = copy(state)
             other[x_r] -= b_dn
             other[x] += b_dn
-            s_i = findfirst!(hs.indexer, other)
+            s_i = findfirst!(equalto(other), hs.indexer)
             f(s_i, -t_dn * x_r_dn_phase * e_iθ)
         end
     end
@@ -221,7 +221,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
             other = copy(state)
             other[x] -= b_dn
             other[x_r] += b_dn
-            s_i = findfirst!(hs.indexer, other)
+            s_i = findfirst!(equalto(other), hs.indexer)
             f(s_i, -t_dn * x_r_dn_phase * conj(e_iθ))
         end
     end
@@ -233,7 +233,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
             || (state[x] == 2 && state[x_r] == 1))
             other = copy(state)
             other[x], other[x_r] = other[x_r], other[x]
-            s_i = findfirst!(hs.indexer, other)
+            s_i = findfirst!(equalto(other), hs.indexer)
             # the minus sign comes from working through the site hops carefully.
             f(s_i, -0.5 * J_xy * x_r_up_phase * x_r_dn_phase)
         end
@@ -322,7 +322,7 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
     for i in 1:N_dn
         state[i] ⊻= 2
     end
-    findfirst!(hs.indexer, state)
+    findfirst!(equalto(state), hs.indexer)
     return hs
 end
 
@@ -375,7 +375,7 @@ function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::
         phase += 1//2
     end
 
-    return findfirst!(hs.indexer, newstate), phase
+    return findfirst!(equalto(newstate), hs.indexer), phase
 end
 
 function site_spinflip(site_state)
@@ -386,7 +386,7 @@ end
 
 function spinflipη(hs::HubbardHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, map(site_spinflip, state))
+    i = findfirst!(equalto(map(site_spinflip, state)), hs.indexer)
 
     # We are implementing the transformation c_↑ ↦ c_↓ and vice versa.  Since
     # our second-quantization convention assumes all spin-up operators come
@@ -401,6 +401,6 @@ end
 
 function particleholeη(hs::HubbardHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(hs.indexer, map(x -> x ⊻ 3, state))
+    i = findfirst!(equalto(map(x -> x ⊻ 3, state)), hs.indexer)
     return i, 0//1
 end

@@ -38,8 +38,8 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
         preliminary_backmap = Tuple{Int, Int}[]
         for state in basis
             length(state) == nsites || throw(ArgumentError("Invalid basis for the given number of sites"))
-            idx_A = findfirst!(preliminary_indexer_A, state[sites_A])
-            idx_B = findfirst!(preliminary_indexer_B, state[sites_B])
+            idx_A = findfirst!(equalto(state[sites_A]), preliminary_indexer_A)
+            idx_B = findfirst!(equalto(state[sites_B]), preliminary_indexer_B)
             push!(preliminary_backmap, (idx_A, idx_B))
         end
         preliminary_by_A = [Int[] for i in 1:length(preliminary_indexer_A)]
@@ -98,8 +98,8 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
                 if state[sites_A] ∉ indexer_A
                     continue
                 end
-                idx_A = findfirst(indexer_A, state[sites_A])
-                idx_B = findfirst(indexer_B, state[sites_B])
+                idx_A = findfirst(equalto(state[sites_A]), indexer_A)
+                idx_B = findfirst(equalto(state[sites_B]), indexer_B)
                 push!(backmap, (idx, idx_A, idx_B))
             end
             by_A = [Tuple{Int, Int}[] for i in 1:length(indexer_A)]

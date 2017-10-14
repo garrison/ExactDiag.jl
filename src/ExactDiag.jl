@@ -2,6 +2,8 @@ __precompile__()
 
 module ExactDiag
 
+using Compat
+
 using Bravais
 using UniqueVectors
 using StaticArrays

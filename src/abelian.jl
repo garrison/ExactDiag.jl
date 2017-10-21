@@ -388,7 +388,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 kdr = kdotr(state_table.hs.lattice, total_momentum, iter[1:d])
                 η += dot(iter[d+1:dd], additional_symmetry_mult)
                 oldval = get!(current_terms, idx, complex(0.0))
-                current_terms[idx] = oldval + exp(complex(0, kdr + 2π * η)) / transformation_count
+                current_terms[idx] = oldval + cis(kdr + 2π * η) / transformation_count
             end
 
             normsq = mapreduce(abs2, +, values(current_terms))

@@ -4,8 +4,10 @@ struct SpinHalfHilbertSpace{L,LatticeType<:AbstractSiteNetwork,IndexType<:Abstra
     lattice::LatticeType
     indexer::IndexType
 
-    SpinHalfHilbertSpace(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{SpinHalfStateType{L}}} =
+    function SpinHalfHilbertSpace(lattice::LatticeType, indexer::IndexType) where {L,LatticeType<:AbstractSiteNetwork,IndexType<:AbstractUniqueVector{SpinHalfStateType{L}}}
+        length(lattice) == L || throw(ArgumentError("Size of indexer state must match size of lattice"))
         new{L,LatticeType,IndexType}(lattice, indexer)
+    end
 end
 
 # XXX NOTE: not type stable since length(lattice) is not known at compile time

@@ -41,7 +41,7 @@ function exp_2πiη(η::Rational{Int})
         @assert numerator(η) & 1 == 1 # otherwise the fraction mustn't be in reduced form
         return -one(Complex128)
     else
-        return exp(im * (2π * η))
+        return cis(2π * η)
     end
 end
 

@@ -154,6 +154,7 @@ export
     get_charge,
     SpinHalfHilbertSpace,
     spin_half_hamiltonian,
+    apply_σ,
     apply_σx,
     apply_σy,
     apply_σz,

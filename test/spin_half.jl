@@ -51,6 +51,16 @@ test_pauli_commutation_relations(ChainLattice([1]))
 test_pauli_commutation_relations(ChainLattice([4]))
 test_pauli_commutation_relations(SquareLattice([2,2]))
 
+let hs = SpinHalfHilbertSpace(SquareLattice([3,3]))
+    seed_state!(hs, 0)
+    for i in 1:length(hs.lattice)
+        @test operator_matrix(hs, apply_σx, i) == operator_matrix(hs, apply_σ, i, [0 1; 1 0])
+        @test operator_matrix(hs, apply_σy, i) == operator_matrix(hs, apply_σ, i, [0 -im; im 0])
+        @test operator_matrix(hs, apply_σz, i) == operator_matrix(hs, apply_σ, i, [1 0; 0 -1])
+    end
+    @test length(hs.indexer) == 2 ^ length(hs.lattice)
+end
+
 function test_disordered_hamiltonian(lattice, expected_gs, expected_Sz, expected_SzSz, expected_SpSm)
     h_z = [-0.9994218963834927, -0.49906680067568954, 0.3714572638372098, 0.9629810631305735, 0.19369581339829733, -0.7411831242535816, -0.061683656841222456, 0.30784629029574884, -0.42077926330644844, 0.25473615736727395, 0.12683294253359123, -0.6640580830314939]
     apply_hamiltonian = spin_half_hamiltonian(J1=1, h_z=h_z)

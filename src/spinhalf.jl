@@ -21,6 +21,17 @@ get_charge(::SpinHalfHilbertSpace, site_state::Integer) = 0
 
 get_total_charge(::SpinHalfHilbertSpace, state) = 0 # because we cannot pick up any phase with twisted boundary conditions
 
+function apply_σ(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, σ::AbstractMatrix{<:Number})
+    size(σ) == (2, 2) || throw(ArgumentError("σ matrix must be 2×2"))
+    state = hs.indexer[j]
+    other = MVector(state)
+    other[x1] ⊻= 1
+    i = findfirst!(equalto(other), hs.indexer)
+    f(j, σ[2-state[x1],2-state[x1]])
+    f(i, σ[2-other[x1],2-state[x1]])
+    nothing
+end
+
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = MVector(hs.indexer[j])
     state[x1] ⊻= 1

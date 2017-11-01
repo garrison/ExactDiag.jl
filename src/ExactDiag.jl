@@ -33,7 +33,7 @@ Looks up a (possibly site-dependent) parameter.
 getval(v::Number, i::Integer) = v
 getval(v::Vector{<:Number}, i::Integer) = v[i]
 
-function exp_2πiη(η::Rational{Int})
+function exp_2πiη(η::Rational{Int})::Complex128
     d = denominator(η)
     if d == 1
         return one(Complex128)

@@ -45,12 +45,12 @@ function exp_2πiη(η::Rational{Int})::Complex128
     end
 end
 
-function operator_matrix(hs::HilbertSpace, apply_operator, args...)
+function operator_matrix(::Type{T}, hs::HilbertSpace, apply_operator, args...) where {T<:Number}
     length(hs.indexer) > 0 || throw(ArgumentError("Indexer must contain at least one (seed) state."))
 
     rows = Int[]
     cols = Int[]
-    vals = Complex128[]
+    vals = T[]
 
     j = 1
     while j <= length(hs.indexer)
@@ -65,6 +65,8 @@ function operator_matrix(hs::HilbertSpace, apply_operator, args...)
     # NOTE: This function is not type stable, as it may return a real or complex matrix.
     return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
+
+operator_matrix(hs::HilbertSpace, args...) = operator_matrix(Complex128, hs, args...)
 
 function operator_apply(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...)
     s = length(hs.indexer)

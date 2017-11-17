@@ -172,13 +172,14 @@ function spin_half_hamiltonian(;
                                h_z::Union{Real,Vector}=0.0,
                                J1_xy::Real=0.0,
                                J1_z::Real=0.0,
+                               J1_x::Real=0.0,
                                J2_xy::Real=0.0,
                                J2_z::Real=0.0,
                                J1::Real=0.0,
                                J2::Real=0.0,
                                ϵ_total_spin::Real=0.0)
     if J1 != 0
-        J1_xy == J1_z == 0 || throw(ArgumentError("If J1 is provided, J1_xy and J1_z must not be."))
+        J1_xy == J1_z == J1_x == 0 || throw(ArgumentError("If J1 is provided, J1_xy and J1_z must not be."))
         J1_xy = J1_z = J1
     end
     if J2 != 0
@@ -211,11 +212,12 @@ function spin_half_hamiltonian(;
 
         # NOTE: When modifying, we sure to modify this outer conditional
         # as well!
-        if J1_xy != 0 || J1_z != 0
+        if J1_xy != 0 || J1_z != 0 || J1_x != 0
             neighbors(hs.lattice) do x1, x2, wrap
                 if sitefilter(x1) && sitefilter(x2)
                     J1_xy != 0 && apply_SxSx_SySy(edapply(f, J1_xy), hs, j, x1, x2)
                     J1_z != 0 && apply_SzSz(edapply(f, J1_z), hs, j, x1, x2)
+                    J1_x != 0 && apply_SxSx(edapply(f, J1_x), hs, j, x1, x2)
                 end
             end
         end

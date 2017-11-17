@@ -21,11 +21,13 @@ get_charge(::SpinHalfHilbertSpace, site_state::Integer) = 0
 
 get_total_charge(::SpinHalfHilbertSpace, state) = 0 # because we cannot pick up any phase with twisted boundary conditions
 
+myflipbit(v::SVector, x::Integer) = setindex(v, xor(v[x], 1), x)
+myflipbits(v::SVector, x1::Integer, x2::Integer) = myflipbit(myflipbit(v, x1), x2)
+
 function apply_σ(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, σ::AbstractMatrix{<:Number})
     size(σ) == (2, 2) || throw(ArgumentError("σ matrix must be 2×2"))
     state = hs.indexer[j]
-    other = MVector(state)
-    other[x1] ⊻= 1
+    other = myflipbit(state, x1)
     i = findfirst!(equalto(other), hs.indexer)
     f(j, σ[2-state[x1],2-state[x1]])
     f(i, σ[2-other[x1],2-state[x1]])
@@ -33,16 +35,14 @@ function apply_σ(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, σ::Abst
 end
 
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    state = MVector(hs.indexer[j])
-    state[x1] ⊻= 1
+    state = myflipbit(hs.indexer[j], x1)
     i = findfirst!(equalto(state), hs.indexer)
     f(i, 1)
     nothing
 end
 
 function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
-    state = MVector(hs.indexer[j])
-    state[x1] ⊻= 1
+    state = myflipbit(hs.indexer[j], x1)
     i = findfirst!(equalto(state), hs.indexer)
     f(i, -im * get_σz(hs, state[x1]))
     nothing
@@ -58,9 +58,7 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
     if x1 == x2
         f(j, 1)
     else
-        state = MVector(hs.indexer[j])
-        state[x1] ⊻= 1
-        state[x2] ⊻= 1
+        state = myflipbits(hs.indexer[j], x1, x2)
         i = findfirst!(equalto(state), hs.indexer)
         f(i, 1)
     end
@@ -79,9 +77,7 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
     else
         state = hs.indexer[j]
         if state[x1] ⊻ state[x2] == 1
-            other = MVector(state)
-            other[x1] ⊻= 1
-            other[x2] ⊻= 1
+            other = myflipbits(state, x1, x2)
             i = findfirst!(equalto(other), hs.indexer)
             f(i, 2)
         end
@@ -98,9 +94,7 @@ function apply_σpσm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
         if x1 == x2
             f(j, 1)
         elseif state[x1] == 0
-            other = MVector(state)
-            other[x1] ⊻= 1
-            other[x2] ⊻= 1
+            other = myflipbits(state, x1, x2)
             i = findfirst!(equalto(other), hs.indexer)
             f(i, 1)
         end
@@ -114,9 +108,7 @@ function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
         if x1 == x2
             f(j, 1)
         elseif state[x1] == 1
-            other = MVector(state)
-            other[x1] ⊻= 1
-            other[x2] ⊻= 1
+            other = myflipbits(state, x1, x2)
             i = findfirst!(equalto(other), hs.indexer)
             f(i, 1)
         end
@@ -161,9 +153,7 @@ function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
             if x == x_r
                 diagonal += 0.5
             elseif state[x] ⊻ state[x_r] == 1
-                other = MVector(state)
-                other[x] ⊻= 1
-                other[x_r] ⊻= 1
+                other = myflipbits(state, x, x_r)
                 s_i = findfirst!(equalto(other), hs.indexer)
                 f(s_i, 0.5)
             end

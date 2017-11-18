@@ -3,9 +3,13 @@ __precompile__()
 module ExactDiag
 
 using Compat
+using Reexport
 
-using Bravais
+@reexport using Bravais
+
 using UniqueVectors
+export AbstractUniqueVector, UniqueVector, findfirst!
+
 using StaticArrays
 using SortingAlgorithms
 using JLD

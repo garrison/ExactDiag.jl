@@ -241,8 +241,9 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
         for (total_k, slater_wfs_k) in zip(total_momenta, slater_wfs)
             for (j, (energy, filled_k_up_indices, filled_k_dn_indices)) in enumerate(band_fillings[total_k])
                 # Construct and calculate the two determinants with proper normalization.
-                up_mat = Complex128[exp(im * kdotr(lattice, k, r)) / root_V for r in r_up, k in filled_k_up_indices]
-                dn_mat = Complex128[exp(im * kdotr(lattice, k, r)) / root_V for r in r_dn, k in filled_k_dn_indices]
+                up_mat = [cis(kdotr(lattice, k, r)) / root_V for r in r_up, k in filled_k_up_indices]
+                dn_mat = Complex128[cis(kdotr(lattice, k, r)) / root_V for r in r_dn, k in filled_k_dn_indices]
+                @test eltype(up_mat) == eltype(dn_mat) == Complex128
                 slater_wfs_k[i, j] = det(up_mat) * det(dn_mat)
             end
         end

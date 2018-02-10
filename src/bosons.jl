@@ -10,6 +10,11 @@ BosonHilbertSpace(lattice) =
 
 statetype(::BosonHilbertSpace) = BosonStateType
 
+get_charge(::BosonHilbertSpace, site_state::Integer) = site_state
+get_total_charge(::BosonHilbertSpace, state::BosonStateType) =
+    sum(state)
+get_total_charge(hs::BosonHilbertSpace, stateidx::Int) = get_total_charge(hs, hs.indexer[stateidx])
+
 struct BosonParameters
     J::Float64
     U::Float64
@@ -72,6 +77,13 @@ function boson_hamiltonian(p::BosonParameters)
         nothing
     end
 end
+
+function apply_n(f, hs::BosonHilbertSpace, j::Integer, x1::Integer)
+    state = hs.indexer[j]
+    f(j, state[x1])
+    nothing
+end
+export apply_n
 
 function seed_state!(hs::BosonHilbertSpace, N::Integer)
     state = zeros(Int, length(hs.lattice))

@@ -23,17 +23,23 @@ statetype(::HilbertSpace{StateType}) where {StateType} = StateType
 
 # FIXME: work with BitVector
 
-@doc doc"""
-Multiplies application of a function by a given value.  Often used to provide the parameters in a model Hamiltonian.
+"""
+    edapply(f[, x::Real])
 
-For simplicity and consistency, `edapply(f)` with no amplitude defaults to amplitude 1, as a no-operation.
-""" ->
+Return a closure which multiplies application of a function by a given value.
+Often used to provide the parameters in a model Hamiltonian.
+
+For simplicity and consistency, `edapply(f)` with no amplitude defaults to
+amplitude 1, as a no-operation.
+"""
 edapply(f, x::Real) = (i, v) -> f(i, x * v)
 edapply(f) = f
 
-@doc doc"""
+"""
+    getval(v, i)
+
 Looks up a (possibly site-dependent) parameter.
-""" ->
+"""
 getval(v::Number, i::Integer) = v
 getval(v::Vector{<:Number}, i::Integer) = v[i]
 

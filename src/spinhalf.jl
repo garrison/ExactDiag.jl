@@ -28,7 +28,7 @@ function apply_σ(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, σ::Abst
     size(σ) == (2, 2) || throw(ArgumentError("σ matrix must be 2×2"))
     state = hs.indexer[j]
     other = myflipbit(state, x1)
-    i = findfirst!(equalto(other), hs.indexer)
+    i = findfirst!(isequal(other), hs.indexer)
     f(j, σ[2-state[x1],2-state[x1]])
     f(i, σ[2-other[x1],2-state[x1]])
     nothing
@@ -36,14 +36,14 @@ end
 
 function apply_σx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = myflipbit(hs.indexer[j], x1)
-    i = findfirst!(equalto(state), hs.indexer)
+    i = findfirst!(isequal(state), hs.indexer)
     f(i, 1)
     nothing
 end
 
 function apply_σy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer)
     state = myflipbit(hs.indexer[j], x1)
-    i = findfirst!(equalto(state), hs.indexer)
+    i = findfirst!(isequal(state), hs.indexer)
     f(i, -im * get_σz(hs, state[x1]))
     nothing
 end
@@ -59,7 +59,7 @@ function apply_σxσx(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
         f(j, 1)
     else
         state = myflipbits(hs.indexer[j], x1, x2)
-        i = findfirst!(equalto(state), hs.indexer)
+        i = findfirst!(isequal(state), hs.indexer)
         f(i, 1)
     end
     nothing
@@ -78,7 +78,7 @@ function apply_σxσx_σyσy(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Intege
         state = hs.indexer[j]
         if state[x1] ⊻ state[x2] == 1
             other = myflipbits(state, x1, x2)
-            i = findfirst!(equalto(other), hs.indexer)
+            i = findfirst!(isequal(other), hs.indexer)
             f(i, 2)
         end
     end
@@ -95,7 +95,7 @@ function apply_σpσm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
             f(j, 1)
         elseif state[x1] == 0
             other = myflipbits(state, x1, x2)
-            i = findfirst!(equalto(other), hs.indexer)
+            i = findfirst!(isequal(other), hs.indexer)
             f(i, 1)
         end
     end
@@ -109,7 +109,7 @@ function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::
             f(j, 1)
         elseif state[x1] == 1
             other = myflipbits(state, x1, x2)
-            i = findfirst!(equalto(other), hs.indexer)
+            i = findfirst!(isequal(other), hs.indexer)
             f(i, 1)
         end
     end
@@ -154,7 +154,7 @@ function apply_total_spin_operator(f, hs::SpinHalfHilbertSpace, j::Integer)
                 diagonal += 0.5
             elseif state[x] ⊻ state[x_r] == 1
                 other = myflipbits(state, x, x_r)
-                s_i = findfirst!(equalto(other), hs.indexer)
+                s_i = findfirst!(isequal(other), hs.indexer)
                 f(s_i, 0.5)
             end
             # S^z_i S^z_j
@@ -250,7 +250,7 @@ function seed_state!(hs::SpinHalfHilbertSpace{L}, N_up::Integer) where {L}
     for i in 1:N_up
         state[i] = 1
     end
-    findfirst!(equalto(state), hs.indexer)
+    findfirst!(isequal(state), hs.indexer)
     return hs
 end
 
@@ -264,17 +264,17 @@ function translateη(hs::SpinHalfHilbertSpace{L}, ltrc::LatticeTranslationCache,
         j, η = translateη(ltrc, i)
         state[j] = site_state
     end
-    return findfirst!(equalto(state), hs.indexer), 0//1
+    return findfirst!(isequal(state), hs.indexer), 0//1
 end
 
 function spinflipη(hs::SpinHalfHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(equalto(map(x -> x ⊻ 1, state)), hs.indexer)
+    i = findfirst!(isequal(map(x -> x ⊻ 1, state)), hs.indexer)
     return i, 0//1
 end
 
 function reflectionη(hs::SpinHalfHilbertSpace, j::Integer)
     state = hs.indexer[j]
-    i = findfirst!(equalto(reverse(state)), hs.indexer)
+    i = findfirst!(isequal(reverse(state)), hs.indexer)
     return i, 0//1
 end

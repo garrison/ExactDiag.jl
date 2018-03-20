@@ -10,8 +10,8 @@ let
     seed_state!(hs, div(L, 2))
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
-    @test rst.state_info_v[findfirst(equalto([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index == rst.state_info_v[findfirst(equalto([0,1,1,1,0,1,0,0]), hs.indexer)].representative_index
-    @test rst.state_info_v[findfirst(equalto([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index != rst.state_info_v[findfirst(equalto([0,1,1,1,0,0,1,0]), hs.indexer)].representative_index
+    @test rst.state_info_v[findfirst(isequal([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index == rst.state_info_v[findfirst(isequal([0,1,1,1,0,1,0,0]), hs.indexer)].representative_index
+    @test rst.state_info_v[findfirst(isequal([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index != rst.state_info_v[findfirst(isequal([0,1,1,1,0,0,1,0]), hs.indexer)].representative_index
 
     full_ham = operator_matrix(hs, apply_hamiltonian)
 

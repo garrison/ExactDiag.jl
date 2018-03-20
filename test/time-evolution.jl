@@ -101,7 +101,7 @@ let
 
     # Try evolving a state whose support is only on a subset of momentum sectors
     initial_state = zeros(Complex128, length(rst.hs.indexer))
-    initial_state[findfirst(equalto([0,1,0,1,0,1,0,1]), hs.indexer)] = 1
+    initial_state[findfirst(isequal([0,1,0,1,0,1,0,1]), hs.indexer)] = 1
 
     let output_states = time_evolve(calculate_momentum_sector, rst, initial_state, time_steps, k_indices=[1,5])
         # Test the output is of the correct size

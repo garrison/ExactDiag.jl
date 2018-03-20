@@ -187,7 +187,7 @@ struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                                 η += η_inc
                             end
                             if w > length(state_info_v) || state_info_v[w].representative_index == 0
-                                findfirst!(equalto(w), transformation_basis_queue)
+                                findfirst!(isequal(w), transformation_basis_queue)
                             end
                             state_info_v[x].transformation_results[i] = (w, η)
                         end
@@ -204,7 +204,7 @@ struct RepresentativeStateTable{HilbertSpaceType<:HilbertSpace}
                 apply_hamiltonian(hs, y) do newidx, amplitude
                     if amplitude != 0
                         if newidx > length(state_info_v) || state_info_v[newidx].representative_index == 0
-                            findfirst!(equalto(newidx), hamiltonian_basis_queue)
+                            findfirst!(isequal(newidx), hamiltonian_basis_queue)
                         end
                     end
                 end
@@ -238,7 +238,7 @@ function RepresentativeStateTable(hs::HilbertSpace{StateType}, apply_hamiltonian
     # Plan the mutation
     old2new = Dict{Int,Int}() # maps the old representative index to the new one
     for state in representative_states
-        newidx = findfirst(equalto(state), state_table.hs.indexer)
+        newidx = findfirst(isequal(state), state_table.hs.indexer)
         oldidx = state_table.state_info_v[newidx].representative_index
         haskey(old2new, oldidx) && throw(ArgumentError("Two states were given in the same equivalence class"))
         old2new[oldidx] = newidx
@@ -399,7 +399,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 continue
             end
 
-            reduced_i = findfirst!(equalto(z), reduced_indexer)
+            reduced_i = findfirst!(isequal(z), reduced_indexer)
             n_discovered_indices += 1
 
             my_grow!(norm_v, length(reduced_indexer))
@@ -439,7 +439,7 @@ function DiagonalizationSector(state_table::RepresentativeStateTable{HilbertSpac
     reduced_indexer = UniqueVector{Int}()
     #sizehint!(reduced_indexer, length(provided_reduced_indexer))
     for state in provided_reduced_indexer
-        i = findfirst!(equalto(state), indexer)
+        i = findfirst!(isequal(state), indexer)
         if state_table.state_info_v[i].representative_index != i
             throw(ArgumentError("reduced_indexer contains states that our state_table has not chosen to be representative"))
         end

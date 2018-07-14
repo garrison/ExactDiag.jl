@@ -11,7 +11,7 @@ mktempdir() do tmpdir
         b = rand(n, m) + im * rand(n, m)
         @test ExactDiag.my_Ac_mul_B(file["a"], b) ≈ a' * b
 
-        c = Array{ComplexF64}(size(b)...)
+        c = Array{ComplexF64}(undef, size(b)...)
         @test ExactDiag.my_A_mul_B!(c, file["a"], b) ≈ a * b
     end
 end
@@ -32,8 +32,8 @@ let
     function calculate_momentum_sector(func, sector_index, momentum_index)
         diagsect = DiagonalizationSector(rst, sector_index, momentum_index)
         reduced_hamiltonian = full(construct_reduced_hamiltonian(diagsect))
-        fact = eigfact(Hermitian((reduced_hamiltonian + reduced_hamiltonian') / 2))
-        func(construct_reduced_indexer(diagsect), fact[:values], fact[:vectors])
+        fact = eigen(Hermitian((reduced_hamiltonian + reduced_hamiltonian') / 2))
+        func(construct_reduced_indexer(diagsect), fact.values, fact.vectors)
         nothing
     end
 
@@ -93,9 +93,9 @@ let
         # Test that doing exact diagonalization without regard to momentum sectors
         # would give the same results
         full_ham = operator_matrix(hs, apply_hamiltonian)
-        fact = eigfact(Hermitian(full(full_ham)))
-        ψ_e = Ac_mul_B(fact[:vectors], initial_state)
-        ψ_t = fact[:vectors] * (exp.(-im .* fact[:values] .* time_steps.') .* ψ_e)
+        fact = eigen(Hermitian(full(full_ham)))
+        ψ_e = Ac_mul_B(fact.vectors, initial_state)
+        ψ_t = fact.vectors * (exp.(-im .* fact.values .* transpose(time_steps)) .* ψ_e)
         @test ψ_t ≈ output_states
     end
 

@@ -580,7 +580,7 @@ function get_full_psi!(full_psi::Vector{ComplexF64}, diagsect::DiagonalizationSe
 end
 
 get_full_psi(diagsect::DiagonalizationSector, reduced_psi::AbstractVector) =
-    get_full_psi!(Array{ComplexF64}(length(diagsect.state_table.hs.indexer)), diagsect, reduced_psi)
+    get_full_psi!(Array{ComplexF64}(undef, length(diagsect.state_table.hs.indexer)), diagsect, reduced_psi)
 
 # FIXME: these diagonalization functions are overkill for systems without symmetry.
 #   1) they force the use of ComplexType

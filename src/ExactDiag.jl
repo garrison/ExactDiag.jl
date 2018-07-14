@@ -112,10 +112,10 @@ expectval(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...) = dot(
 struct CheckEigenstateError <: Exception end
 
 eigenstate_badness(hamiltonian::AbstractMatrix{<:Number}, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
-    vecnorm(hamiltonian * eigenvector - eigenvalue * eigenvector)
+    Compat.norm(hamiltonian * eigenvector - eigenvalue * eigenvector)
 
 eigenstate_badness(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
-    vecnorm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
+    Compat.norm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
 
 check_eigenstate(args...; tolerance::Float64=1e-5) =
     abs(eigenstate_badness(args...)) < tolerance || throw(CheckEigenstateError())

@@ -15,8 +15,8 @@ let L = 10
         for reflection_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [reflection_idx])
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
-            fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
-            evals, evecs = fact[:values], fact[:vectors]
+            fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
+            evals, evecs = fact.values, fact.vectors
             for i in 1:length(evals)
                 eval = evals[i]
                 evec = evecs[:,i]

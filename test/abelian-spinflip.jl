@@ -21,7 +21,7 @@ let
     # FIXME: we should really test this using a Hamiltonian with more terms
     # (i.e. not just J1)
     tracer3 = Tracer(hs, 1:3)
-    lattice_A_3 = ChainLattice([3], diagm([0]))
+    lattice_A_3 = ChainLattice([3], diagm(0 => [0]))
     subsystem3_H_A = [operator_matrix(SpinHalfHilbertSpace(lattice_A_3, ts.indexer_A), apply_hamiltonian) for ts in tracer3.sectors]
 
     @test diagsizes(Tracer(hs, 1:4)) == Dict{Int,Int}(1=>2,4=>2,6=>1)
@@ -34,8 +34,8 @@ let
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
             reduced_op = construct_reduced_operator(diagsect, my_operator...)
             reduced_H_A_3 = construct_reduced_operator(diagsect, apply_hamiltonian, siteidx -> siteidx in 1:3)
-            fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
-            evals, evecs = fact[:values], fact[:vectors]
+            fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
+            evals, evecs = fact.values, fact.vectors
             for i in 1:length(evals)
                 eval = evals[i]
                 evec = evecs[:,i]

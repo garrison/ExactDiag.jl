@@ -47,9 +47,9 @@ function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} wh
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
-            @test vecnorm(reduced_ham - reduced_ham') < 1e-5
-            fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
-            evals, evecs = fact[:values], fact[:vectors]
+            @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+            fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
+            evals, evecs = fact.values, fact.vectors
             for i in 1:length(evals)
                 eval = evals[i]
                 evec = evecs[:,i]
@@ -65,24 +65,24 @@ let
     for L in 2:2:6
         # Take advantage of spinflip symmetry
         test_1d_hubbard_symmetries(ChainLattice([L]), [spinflip_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [spinflip_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//3]), [spinflip_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [spinflip_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [L]), [1//2]), [spinflip_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [L]), [1//3]), [spinflip_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [0])), [spinflip_symmetry])
 
         # Particle-hole symmetry
         test_1d_hubbard_symmetries(ChainLattice([L]), [particlehole_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [particlehole_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [L]), [1//2]), [particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [0])), [particlehole_symmetry])
 
         # Spinflip + particle-hole
         test_1d_hubbard_symmetries(ChainLattice([L]), [spinflip_symmetry, particlehole_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([L]), [1//2]), [spinflip_symmetry, particlehole_symmetry])
-        test_1d_hubbard_symmetries(ChainLattice([L], diagm([0])), [spinflip_symmetry, particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [L]), [1//2]), [spinflip_symmetry, particlehole_symmetry])
+        test_1d_hubbard_symmetries(ChainLattice([L], diagm(0 => [0])), [spinflip_symmetry, particlehole_symmetry])
     end
 end
 
 let
-    lattice = ChainLattice([6], diagm([6]), [1//7])
+    lattice = ChainLattice([6], diagm(0 => [6]), [1//7])
     ltrc = LatticeTranslationCache(lattice, 1)
     hs = HubbardHilbertSpace(lattice)
     push!(hs.indexer, [0, 0, 3, 1, 0, 2])
@@ -124,9 +124,9 @@ let
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
-            @test vecnorm(reduced_ham - reduced_ham') < 1e-5
-            fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
-            evals, evecs = fact[:values], fact[:vectors]
+            @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+            fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
+            evals, evecs = fact.values, fact.vectors
             eval = evals[1]
             evec = evecs[:,1]
             ψ = get_full_psi(diagsect, evec)
@@ -139,22 +139,22 @@ let
     debug && @show gs_eval
 
     # Construct the Slater determinant wavefunction
-    slater = Array{ComplexF64}(length(hs.indexer))
+    slater = Array{ComplexF64}(undef, length(hs.indexer))
     for (i, state) in enumerate(hs.indexer)
         # First figure out the positions of the particles
         pn = 3
-        r_up = find(state) do x
+        r_up = findall(state) do x
             x & 1 != 0
         end
         @assert length(r_up) == pn
-        r_dn = find(state) do x
+        r_dn = findall(state) do x
             x & 2 != 0
         end
         @assert length(r_dn) == pn
 
         # Now construct and calculate the two determinants.
-        mat1 = Array{ComplexF64}(pn, pn)
-        mat2 = Array{ComplexF64}(pn, pn)
+        mat1 = Array{ComplexF64}(undef, pn, pn)
+        mat2 = Array{ComplexF64}(undef, pn, pn)
         for j in 1:3
             mat1[j, 1] = exp(im * pi * r_up[j] / 3.)
             mat1[j, 2] = 1
@@ -180,7 +180,7 @@ end
 function degenerate_ranges(v::AbstractVector{T}, tol::T) where {T<:Real}
     @assert issorted(v)
     diffs = v[2:end] - v[1:end-1]
-    indices = find(diffs) do d
+    indices = findall(diffs) do d
         d > tol
     end
     return UnitRange{Int}[x:y for (x, y) in zip([1; indices .+ 1], [indices; length(v)])]
@@ -229,11 +229,11 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     root_V = sqrt(length(lattice))
 
     # Construct each Slater determinant wavefunction
-    slater_wfs = [Array{ComplexF64}(length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
+    slater_wfs = [Array{ComplexF64}(undef, length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
     for (i, state) in enumerate(hs.indexer)
         # First figure out the positions of the particles
-        r_up = find(x -> x & 1 != 0, state)
-        r_dn = find(x -> x & 2 != 0, state)
+        r_up = findall(x -> x & 1 != 0, state)
+        r_dn = findall(x -> x & 2 != 0, state)
         @assert length(r_up) == N_up
         @assert length(r_dn) == N_dn
 
@@ -255,9 +255,9 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
         diagsect = DiagonalizationSector(rst, 1, k_idx)
         length(diagsect) != 0 || continue
         reduced_ham = full(construct_reduced_hamiltonian(diagsect))
-        @test vecnorm(reduced_ham - reduced_ham') < 1e-5
-        fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
-        evals, evecs = fact[:values], fact[:vectors]
+        @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+        fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
+        evals, evecs = fact.values, fact.vectors
 
         # Check the energies
         @test evals ≈ slater_energies atol=1e-10
@@ -290,15 +290,15 @@ let
 
     test_slater_determinants(ChainLattice([6]), 2, 0, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([6]), 3, 3, hypercubic_ϵ)
-    test_slater_determinants(ChainLattice([6], diagm([6]), [1//2]), 1, 0, hypercubic_ϵ)
-    test_slater_determinants(ChainLattice([6], diagm([6]), [1//5]), 1, 0, hypercubic_ϵ)
-    test_slater_determinants(ChainLattice([6], diagm([6]), [1//2]), 3, 3, hypercubic_ϵ)
-    test_slater_determinants(ChainLattice([6], diagm([6]), [1//5]), 3, 3, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm(0 => [6]), [1//2]), 1, 0, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm(0 => [6]), [1//5]), 1, 0, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm(0 => [6]), [1//2]), 3, 3, hypercubic_ϵ)
+    test_slater_determinants(ChainLattice([6], diagm(0 => [6]), [1//5]), 3, 3, hypercubic_ϵ)
     test_slater_determinants(ChainLattice([5]), 2, 3, hypercubic_ϵ)
     test_slater_determinants(SquareLattice([2, 3]), 3, 3, hypercubic_ϵ)
 
     #test_slater_determinants(TriangularLattice([2, 3]), 3, 3)
-    #test_slater_determinants(TriangularLattice([2, 3], diagm([2,3]), [1//2, 1//3]), 3, 3)
+    #test_slater_determinants(TriangularLattice([2, 3], diagm(0 => [2,3]), [1//2, 1//3]), 3, 3)
 end
 
 function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # does not assume half filling
@@ -316,9 +316,9 @@ function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # d
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
             reduced_ham = full(construct_reduced_hamiltonian(diagsect))
-            @test vecnorm(reduced_ham - reduced_ham') < 1e-5
-            fact = eigfact(Hermitian((reduced_ham + reduced_ham') / 2))
-            evals, evecs = fact[:values], fact[:vectors]
+            @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+            fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
+            evals, evecs = fact.values, fact.vectors
             for i in 1:length(evals)
                 eval = evals[i]
                 evec = evecs[:,i]
@@ -345,12 +345,12 @@ end
 
 test_hubbard_abelian_spinflip(ChainLattice([6]), 2)
 test_hubbard_abelian_spinflip(ChainLattice([6]), 3)
-test_hubbard_abelian_spinflip(ChainLattice([2], diagm([2]), [1//3]), 1)
-test_hubbard_abelian_spinflip(ChainLattice([4], diagm([4]), [1//3]), 2)
-test_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//2]), 3)
-test_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//5]), 3)
-test_hubbard_abelian_spinflip(ChainLattice([6], diagm([6]), [1//5]), 3, t2=0.2)
-test_hubbard_abelian_spinflip(ChainLattice([4], diagm([4]), [1//5]), 2, t2=0.2, J=0.3)
+test_hubbard_abelian_spinflip(ChainLattice([2], diagm(0 => [2]), [1//3]), 1)
+test_hubbard_abelian_spinflip(ChainLattice([4], diagm(0 => [4]), [1//3]), 2)
+test_hubbard_abelian_spinflip(ChainLattice([6], diagm(0 => [6]), [1//2]), 3)
+test_hubbard_abelian_spinflip(ChainLattice([6], diagm(0 => [6]), [1//5]), 3)
+test_hubbard_abelian_spinflip(ChainLattice([6], diagm(0 => [6]), [1//5]), 3, t2=0.2)
+test_hubbard_abelian_spinflip(ChainLattice([4], diagm(0 => [4]), [1//5]), 2, t2=0.2, J=0.3)
 
 test_hubbard_abelian_spinflip(SquareLattice([2,3]), 3)
 test_hubbard_abelian_spinflip(TriangularLattice([2,3]), 3)

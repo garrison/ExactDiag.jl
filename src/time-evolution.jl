@@ -83,7 +83,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     ###
     # Transform initial state to energy basis
     ###
-    initial_energy_states = Array{ComplexF64}(energy_basis_size, size(initial_states)[2:end]...)
+    initial_energy_states = Array{ComplexF64}(undef, energy_basis_size, size(initial_states)[2:end]...)
     all_energies = sizehint!(Float64[], energy_basis_size)
     offset = 0
     initial_momentum_state = ComplexF64[]
@@ -143,8 +143,8 @@ function time_evolve_to_position_basis(load_momentum_sector::Function, state_tab
                 @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
                 diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
 
-                momentum_states = Array{ComplexF64}(length(diagsect), length(time_steps))
-                time_evolved_sector = Array{ComplexF64}(length(diagsect), length(time_steps))
+                momentum_states = Array{ComplexF64}(undef, length(diagsect), length(time_steps))
+                time_evolved_sector = Array{ComplexF64}(undef, length(diagsect), length(time_steps))
 
                 # Loop through each initial state
                 for z in 1:size(initial_energy_states, 2)

@@ -51,8 +51,8 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
 
         # Now figure out the independent sectors
         sectors = TracerSector{StateType,StateTypeA,StateTypeB}[]
-        remaining_A = IntSet(1:length(preliminary_indexer_A))
-        remaining_B = IntSet(1:length(preliminary_indexer_B))
+        remaining_A = BitSet(1:length(preliminary_indexer_A))
+        remaining_B = BitSet(1:length(preliminary_indexer_B))
         while !isempty(remaining_A)
             @assert !isempty(remaining_B)
 
@@ -174,7 +174,7 @@ function construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::T
 end
 
 construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, ts::TracerSector, ψ::AbstractVector{T}) where {T<:Number} =
-    construct_ρ_A_block!(ρ_A, Array{T}(length(ts.indexer_A), length(ts.indexer_B)), ts, ψ)
+    construct_ρ_A_block!(ρ_A, Array{T}(undef, length(ts.indexer_A), length(ts.indexer_B)), ts, ψ)
 
 function construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, ts::TracerSector, ρ::AbstractMatrix{T}) where {T<:Number}
     size(ρ) == (ts.original_basis_length, ts.original_basis_length) || throw(DimensionMismatch("Density matrix ρ has the wrong size"))
@@ -195,7 +195,7 @@ end
 
 function construct_ρ_A_block(ts::TracerSector, ψ_or_ρ::AbstractVecOrMat{T}) where {T<:Number}
     M = length(ts.indexer_A)
-    return construct_ρ_A_block!(Array{T}(M, M), ts, ψ_or_ρ)
+    return construct_ρ_A_block!(Array{T}(undef, M, M), ts, ψ_or_ρ)
 end
 
 # Apparently julia does not special-case eigvals() for small, Hermitian

@@ -52,7 +52,7 @@ let
                     # FIXME: could use a higher level abstraction for this pattern!
                     exv1 = mapreduce(+, 1:length(tracer3.sectors)) do sect
                         ρ_A = ExactDiag.construct_ρ_A_block(tracer3.sectors[sect], ψ)
-                        vecdot(ρ_A', subsystem3_H_A[sect]) # trace product
+                        Compat.dot(ρ_A', subsystem3_H_A[sect]) # trace product
                     end
                     exv2 = dot(evec, reduced_H_A_3 * evec)
                     @test exv1 ≈ exv2 atol=1e-10

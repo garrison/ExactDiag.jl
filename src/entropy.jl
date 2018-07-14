@@ -89,8 +89,8 @@ struct Tracer{StateType<:AbstractVector,StateTypeA<:AbstractVector,StateTypeB<:A
             end
 
             # Sort things to be a bit more predictable
-            indexer_A = UniqueVector{StateTypeA}(sort!(collect(indexer_A_set), by=(x -> (x...))))
-            indexer_B = UniqueVector{StateTypeB}(sort!(collect(indexer_B_set), by=(x -> (x...))))
+            indexer_A = UniqueVector{StateTypeA}(sort!(collect(indexer_A_set), by=(x -> (x...,))))
+            indexer_B = UniqueVector{StateTypeB}(sort!(collect(indexer_B_set), by=(x -> (x...,))))
 
             # Construct by_A, by_B, and backmap
             backmap = Tuple{Int, Int, Int}[]

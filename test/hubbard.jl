@@ -139,7 +139,7 @@ let
     debug && @show gs_eval
 
     # Construct the Slater determinant wavefunction
-    slater = Array{Complex128}(length(hs.indexer))
+    slater = Array{ComplexF64}(length(hs.indexer))
     for (i, state) in enumerate(hs.indexer)
         # First figure out the positions of the particles
         pn = 3
@@ -153,8 +153,8 @@ let
         @assert length(r_dn) == pn
 
         # Now construct and calculate the two determinants.
-        mat1 = Array{Complex128}(pn, pn)
-        mat2 = Array{Complex128}(pn, pn)
+        mat1 = Array{ComplexF64}(pn, pn)
+        mat2 = Array{ComplexF64}(pn, pn)
         for j in 1:3
             mat1[j, 1] = exp(im * pi * r_up[j] / 3.)
             mat1[j, 2] = 1
@@ -229,7 +229,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
     root_V = sqrt(length(lattice))
 
     # Construct each Slater determinant wavefunction
-    slater_wfs = [Array{Complex128}(length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
+    slater_wfs = [Array{ComplexF64}(length(hs.indexer), length(band_fillings[k])) for k in total_momenta]
     for (i, state) in enumerate(hs.indexer)
         # First figure out the positions of the particles
         r_up = find(x -> x & 1 != 0, state)
@@ -242,8 +242,8 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
             for (j, (energy, filled_k_up_indices, filled_k_dn_indices)) in enumerate(band_fillings[total_k])
                 # Construct and calculate the two determinants with proper normalization.
                 up_mat = [cis(kdotr(lattice, k, r)) / root_V for r in r_up, k in filled_k_up_indices]
-                dn_mat = Complex128[cis(kdotr(lattice, k, r)) / root_V for r in r_dn, k in filled_k_dn_indices]
-                @test eltype(up_mat) == eltype(dn_mat) == Complex128
+                dn_mat = ComplexF64[cis(kdotr(lattice, k, r)) / root_V for r in r_dn, k in filled_k_dn_indices]
+                @test eltype(up_mat) == eltype(dn_mat) == ComplexF64
                 slater_wfs_k[i, j] = det(up_mat) * det(dn_mat)
             end
         end

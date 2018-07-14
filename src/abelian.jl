@@ -320,10 +320,10 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
 
     # Allows us to get the representative state \ket{r} and its
     # coefficient given a state \ket{s} (some element of \ket{r_k}).
-    representative_v::Vector{Tuple{Int, Complex128}}
+    representative_v::Vector{Tuple{Int, ComplexF64}}
 
     # Allows us to explicitly construct \ket{r_k} from \ket{r}
-    coefficient_v::Vector{Tuple{Int, Int, Complex128}}
+    coefficient_v::Vector{Tuple{Int, Int, ComplexF64}}
 
     function DiagonalizationSector{HilbertSpaceType}(state_table::RepresentativeStateTable{HilbertSpaceType},
                                                      sector_index::Int,
@@ -337,8 +337,8 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
         @assert all(0 .<= additional_symmetry_indices .< state_table.additional_symmetry_periods)
 
         norm_v = Float64[]
-        representative_v = Tuple{Int, Complex128}[(0, 0.0im) for i in 1:length(state_table.hs.indexer)]
-        coefficient_v = Tuple{Int, Int, Complex128}[]
+        representative_v = Tuple{Int, ComplexF64}[(0, 0.0im) for i in 1:length(state_table.hs.indexer)]
+        coefficient_v = Tuple{Int, Int, ComplexF64}[]
 
         d = ndimensions(state_table.hs.lattice)
         dd = d + length(state_table.additional_symmetry_periods)
@@ -369,7 +369,7 @@ struct DiagonalizationSector{HilbertSpaceType<:HilbertSpace}
                 continue
             end
 
-            current_terms = Dict{Int, Complex128}()
+            current_terms = Dict{Int, ComplexF64}()
 
             # XXX FIXME: make sure all the states in our sector have the same number!
             total_charge = get_total_charge(state_table.hs, z)
@@ -482,7 +482,7 @@ function construct_reduced_commuting_operator(diagsect::DiagonalizationSector, a
     s = length(diagsect)
     rows = Int[]
     cols = Int[]
-    vals = Complex128[]
+    vals = ComplexF64[]
     for j in 1:s
         apply_reduced_commuting_operator(diagsect, j, apply_operator) do i, amplitude
             push!(rows, i)
@@ -540,7 +540,7 @@ function construct_reduced_operator(diagsect::DiagonalizationSector, apply_opera
     s = length(diagsect)
     rows = Int[]
     cols = Int[]
-    vals = Complex128[]
+    vals = ComplexF64[]
     for j in 1:s
         apply_reduced_operator(diagsect, j, apply_operator, args...) do i, amplitude
             push!(rows, i)
@@ -569,10 +569,10 @@ function construct_reduced_indexer(diagsect::DiagonalizationSector)
     return UniqueVector{eltype(original_indexer)}([original_indexer[i] for i in diagsect.reduced_indexer])
 end
 
-function get_full_psi!(full_psi::Vector{Complex128}, diagsect::DiagonalizationSector, reduced_psi::AbstractVector)
+function get_full_psi!(full_psi::Vector{ComplexF64}, diagsect::DiagonalizationSector, reduced_psi::AbstractVector)
     length(reduced_psi) == length(diagsect) || throw(DimensionMismatch("reduced_psi has the wrong length"))
     length(full_psi) == length(diagsect.state_table.hs.indexer) || throw(DimensionMismatch("full_psi has the wrong length"))
-    fill!(full_psi, zero(Complex128))
+    fill!(full_psi, zero(ComplexF64))
     for (reduced_i, i, alpha) in diagsect.coefficient_v
         full_psi[i] = reduced_psi[reduced_i] * alpha
     end
@@ -580,7 +580,7 @@ function get_full_psi!(full_psi::Vector{Complex128}, diagsect::DiagonalizationSe
 end
 
 get_full_psi(diagsect::DiagonalizationSector, reduced_psi::AbstractVector) =
-    get_full_psi!(Array{Complex128}(length(diagsect.state_table.hs.indexer)), diagsect, reduced_psi)
+    get_full_psi!(Array{ComplexF64}(length(diagsect.state_table.hs.indexer)), diagsect, reduced_psi)
 
 # FIXME: these diagonalization functions are overkill for systems without symmetry.
 #   1) they force the use of ComplexType

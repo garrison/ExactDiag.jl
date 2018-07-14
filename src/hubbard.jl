@@ -181,7 +181,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
     @assert x_r_dn_phase == 1 || x_r_dn_phase == -1
 
     # up spin hopping
-    const b_up = 1
+    b_up = 1 # const
     if state[x_r] & b_up != 0
         # backward
         if state[x] & b_up == 0
@@ -204,7 +204,7 @@ function hubbard_neighbor_terms(f, hs, s_j, x::Int, x_r::Int, η::Rational{Int},
     end
 
     # dn spin hopping
-    const b_dn = 2
+    b_dn = 2 # const
     if state[x_r] & b_dn != 0
         # backward
         if state[x] & b_dn == 0

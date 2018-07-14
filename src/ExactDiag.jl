@@ -49,13 +49,13 @@ Looks up a (possibly site-dependent) parameter.
 getval(v::Number, i::Integer) = v
 getval(v::Vector{<:Number}, i::Integer) = v[i]
 
-function exp_2πiη(η::Rational{Int})::Complex128
+function exp_2πiη(η::Rational{Int})::ComplexF64
     d = denominator(η)
     if d == 1
-        return one(Complex128)
+        return one(ComplexF64)
     elseif d == 2
         @assert numerator(η) & 1 == 1 # otherwise the fraction mustn't be in reduced form
-        return -one(Complex128)
+        return -one(ComplexF64)
     else
         return cis(2π * η)
     end
@@ -82,12 +82,12 @@ function operator_matrix(::Type{T}, hs::HilbertSpace, apply_operator, args...) w
     return sparse(rows, cols, isreal(vals) ? real(vals) : vals, length(hs.indexer), length(hs.indexer))
 end
 
-operator_matrix(hs::HilbertSpace, args...) = operator_matrix(Complex128, hs, args...)
+operator_matrix(hs::HilbertSpace, args...) = operator_matrix(ComplexF64, hs, args...)
 
 function operator_apply(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...)
     s = length(hs.indexer)
     length(vec) == s || throw(DimensionMismatch())
-    rv = zeros(Complex128, s)
+    rv = zeros(ComplexF64, s)
     for (j, amplitude) in enumerate(vec)
         if amplitude != 0
             apply_operator(hs, j, args...) do i, v

@@ -11,7 +11,7 @@ mktempdir() do tmpdir
         b = rand(n, m) + im * rand(n, m)
         @test ExactDiag.my_Ac_mul_B(file["a"], b) ≈ a' * b
 
-        c = Array{Complex128}(size(b)...)
+        c = Array{ComplexF64}(size(b)...)
         @test ExactDiag.my_A_mul_B!(c, file["a"], b) ≈ a * b
     end
 end
@@ -23,7 +23,7 @@ let
     seed_state!(hs, div(length(lattice), 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
 
-    initial_state = zeros(Complex128, length(rst.hs.indexer))
+    initial_state = zeros(ComplexF64, length(rst.hs.indexer))
     initial_state[1] = 1 / sqrt(2)
     initial_state[2] = im / sqrt(2)
     time_steps = logspace(-1.5, 4, 41)
@@ -100,7 +100,7 @@ let
     end
 
     # Try evolving a state whose support is only on a subset of momentum sectors
-    initial_state = zeros(Complex128, length(rst.hs.indexer))
+    initial_state = zeros(ComplexF64, length(rst.hs.indexer))
     initial_state[findfirst(isequal([0,1,0,1,0,1,0,1]), hs.indexer)] = 1
 
     let output_states = time_evolve(calculate_momentum_sector, rst, initial_state, time_steps, k_indices=[1,5])

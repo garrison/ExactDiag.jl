@@ -83,10 +83,10 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
     ###
     # Transform initial state to energy basis
     ###
-    initial_energy_states = Array{Complex128}(energy_basis_size, size(initial_states)[2:end]...)
+    initial_energy_states = Array{ComplexF64}(energy_basis_size, size(initial_states)[2:end]...)
     all_energies = sizehint!(Float64[], energy_basis_size)
     offset = 0
-    initial_momentum_state = Complex128[]
+    initial_momentum_state = ComplexF64[]
     for sector_index in 1:state_table.sector_count
         for momentum_index in k_indices
             load_momentum_sector(sector_index, momentum_index) do reduced_indexer, reduced_energies, reduced_eigenstates
@@ -94,7 +94,7 @@ function to_energy_basis(load_momentum_sector::Function, state_table::Representa
                 myrange = offset+1 : offset+length(reduced_indexer)
                 diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
 
-                initial_momentum_states = zeros(Complex128, length(diagsect), nstates)
+                initial_momentum_states = zeros(ComplexF64, length(diagsect), nstates)
 
                 # Project each state onto current momentum basis
                 #
@@ -135,7 +135,7 @@ function time_evolve_to_position_basis(load_momentum_sector::Function, state_tab
     # Time evolve and move back to position basis
     ###
     basis_size = length(state_table.hs.indexer)
-    output_states = zeros(Complex128, basis_size, length(time_steps), size(initial_energy_states)[2:end]...)
+    output_states = zeros(ComplexF64, basis_size, length(time_steps), size(initial_energy_states)[2:end]...)
     offset = 0
     for sector_index in 1:state_table.sector_count
         for momentum_index in k_indices
@@ -143,8 +143,8 @@ function time_evolve_to_position_basis(load_momentum_sector::Function, state_tab
                 @assert length(reduced_indexer) == length(reduced_energies) == size(reduced_eigenstates, 1) == size(reduced_eigenstates, 2)
                 diagsect = DiagonalizationSector(state_table, sector_index, momentum_index, reduced_indexer)
 
-                momentum_states = Array{Complex128}(length(diagsect), length(time_steps))
-                time_evolved_sector = Array{Complex128}(length(diagsect), length(time_steps))
+                momentum_states = Array{ComplexF64}(length(diagsect), length(time_steps))
+                time_evolved_sector = Array{ComplexF64}(length(diagsect), length(time_steps))
 
                 # Loop through each initial state
                 for z in 1:size(initial_energy_states, 2)

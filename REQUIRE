@@ -1,5 +1,5 @@
 julia 0.6
-Compat 0.61
+Compat 0.70
 Reexport
 StaticArrays
 UniqueVectors

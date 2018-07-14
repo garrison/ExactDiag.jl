@@ -27,7 +27,7 @@ let
     initial_state = zeros(ComplexF64, length(rst.hs.indexer))
     initial_state[1] = 1 / sqrt(2)
     initial_state[2] = im / sqrt(2)
-    time_steps = logspace(-1.5, 4, 41)
+    time_steps = 10 .^ Compat.range(-1.5, stop=4, length=41)
     push!(time_steps, 0)
 
     function calculate_momentum_sector(func, sector_index, momentum_index)
@@ -96,7 +96,7 @@ let
         # would give the same results
         full_ham = operator_matrix(hs, apply_hamiltonian)
         fact = eigen(Hermitian(Matrix(full_ham)))
-        ψ_e = Ac_mul_B(fact.vectors, initial_state)
+        ψ_e = fact.vectors' * initial_state
         ψ_t = fact.vectors * (exp.(-im .* fact.values .* transpose(time_steps)) .* ψ_e)
         @test ψ_t ≈ output_states
     end

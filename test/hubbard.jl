@@ -42,7 +42,11 @@ function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} wh
     symmbounds = (repeat([2], inner=[length(symmetries)])...,)
     for k_idx in eachmomentumindex(hs.lattice)
         for symm_idx in 1:2*length(symmetries)
-            symm = [ind2sub(symmbounds, symm_idx)...] .- 1
+            @static if VERSION >= v"0.7-"
+                symm = [Tuple(CartesianIndices(symmbounds)[symm_idx])...] .- 1
+            else
+                symm = [ind2sub(symmbounds, symm_idx)...] .- 1
+            end
             diagsect = DiagonalizationSector(rst, 1, k_idx, symm)
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
@@ -273,7 +277,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
                 # Project ψ into the subspace of Slater determinant eigenstates
                 # at this energy.  It should remain unchanged by this
                 # projection.
-                ϕ = zeros(ψ)
+                ϕ = zero(ψ)
                 for j in degenerate_range
                     slater_wf = @view slater_wfs[k_idx][:,j]
                     ϕ .+= slater_wf .* dot(slater_wf, ψ)

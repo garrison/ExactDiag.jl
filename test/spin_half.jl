@@ -42,7 +42,7 @@ function test_pauli_commutation_relations(lattice)
         end
         for a in 1:3
             for b in 1:3
-                @test anticommutator(σ_i[a], σ_i[b]) == 2 * eye(length(hs.indexer)) * δ(a,b)
+                @test anticommutator(σ_i[a], σ_i[b]) == Matrix(2I, length(hs.indexer), length(hs.indexer)) * δ(a,b)
             end
         end
     end

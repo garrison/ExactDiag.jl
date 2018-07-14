@@ -12,7 +12,7 @@
 @test ExactDiag.site_spinflip(3) == 3
 
 function test_1d_hubbard_hamiltonian(lattice)
-    apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=MathConstants.e/1000)
+    apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=ℯ/1000)
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, div(length(lattice), 2), div(length(lattice), 2))
     mat = operator_matrix(hs, apply_hamiltonian)

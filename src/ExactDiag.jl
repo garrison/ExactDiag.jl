@@ -25,6 +25,8 @@ statetype(::HilbertSpace{StateType}) where {StateType} = StateType
     using SparseArrays
     using LinearAlgebra
     using Nullables
+else
+    eigen = eigfact
 end
 
 # FIXME: work with BitVector

@@ -13,6 +13,9 @@ using Compat.Test
     using SparseArrays
     using LinearAlgebra
     using Arpack
+else
+    eigen = eigfact
+    ℯ = e # FIXME: when support for 0.6 is dropped, use MathConstants.e instead in hubbard.jl
 end
 
 debug = false

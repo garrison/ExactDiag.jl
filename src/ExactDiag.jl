@@ -194,6 +194,7 @@ export
     apply_SmSp,
     apply_SpSm_SmSp,
     apply_total_spin_operator,
+    SpinHalfFullIndexer,
     HubbardHilbertSpace,
     HubbardParameters,
     hubbard_hamiltonian,

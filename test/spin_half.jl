@@ -51,7 +51,11 @@ test_pauli_commutation_relations(ChainLattice([1]))
 test_pauli_commutation_relations(ChainLattice([4]))
 test_pauli_commutation_relations(SquareLattice([2,2]))
 
-let hs = SpinHalfHilbertSpace(SquareLattice([3,3]))
+hsv = [
+    seed_state!(SpinHalfHilbertSpace(SquareLattice([3,3])), 0),
+    SpinHalfHilbertSpace(SquareLattice([2,3]), SpinHalfFullIndexer(6)),
+]
+for hs in hsv
     seed_state!(hs, 0)
     for i in 1:length(hs.lattice)
         @test operator_matrix(hs, apply_σx, i) == operator_matrix(hs, apply_σ, i, [0 1; 1 0])

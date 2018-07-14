@@ -278,3 +278,32 @@ function reflectionη(hs::SpinHalfHilbertSpace, j::Integer)
     i = findfirst!(isequal(reverse(state)), hs.indexer)
     return i, 0//1
 end
+
+struct SpinHalfFullIndexer{L} <: AbstractUniqueVector{SVector{L,Int}}
+end
+
+SpinHalfFullIndexer(L::Integer) = SpinHalfFullIndexer{L}()
+
+Base.length(indexer::SpinHalfFullIndexer{L}) where {L} = 2 ^ L
+Base.size(indexer::SpinHalfFullIndexer{L}) where {L} = (2 ^ L,)
+
+function Base.getindex(indexer::SpinHalfFullIndexer{L}, i::Integer) where {L}
+    checkbounds(indexer, i)
+    i -= 1
+    # FIXME: would be nice if we could use @SVector macro!!
+    SVector{L,Int}([Int((i & (1 << (L - j))) == 0) for j in 1:L])
+end
+
+EqualTo = Compat.Fix2{typeof(isequal)}
+
+function Base.findfirst(p::EqualTo{<:StaticVector{L,Int}}, indexer::SpinHalfFullIndexer{L}) where {L}
+    s = 1
+    for i in 0:L-1
+        v = p.x[L - i]
+        @assert (v | 1) == 1
+        s += (1 - v) << i
+    end
+    s
+end
+
+UniqueVectors.findfirst!(p::EqualTo, indexer::SpinHalfFullIndexer) = findfirst(p, indexer)

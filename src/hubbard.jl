@@ -348,7 +348,7 @@ end
 function translateη(hs::HubbardHilbertSpace, ltrc::LatticeTranslationCache, j::Integer)
     state = hs.indexer[j]
     sz = length(state)
-    newstate = zeros(state)
+    newstate = zero(state)
     phase = 0//1
 
     parity = 0

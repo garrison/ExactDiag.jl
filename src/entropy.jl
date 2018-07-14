@@ -167,7 +167,7 @@ end
 function construct_ρ_A_block!(ρ_A::AbstractMatrix{T}, psimat::Matrix{T}, ts::TracerSector, ψ::AbstractVector{T}) where {T<:Number}
     size(ρ_A) == (length(ts.indexer_A), length(ts.indexer_A)) || throw(DimensionMismatch("Density matrix ρ_A has the wrong size"))
     construct_psimat_block!(psimat, ts, ψ)
-    A_mul_Bc!(ρ_A, psimat, psimat)
+    mul!(ρ_A, psimat, psimat')
     # It should be Hermitian by construction (FIXME: right?)
     #@assert sum(abs(ρ_A - ρ_A')) == 0
     return Hermitian(ρ_A)

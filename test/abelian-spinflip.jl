@@ -31,7 +31,7 @@ let
         for spinflip_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             processed_length += length(diagsect)
-            reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
             reduced_op = construct_reduced_operator(diagsect, my_operator...)
             reduced_H_A_3 = construct_reduced_operator(diagsect, apply_hamiltonian, siteidx -> siteidx in 1:3)
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))

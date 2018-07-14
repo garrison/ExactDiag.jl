@@ -12,7 +12,7 @@
 @test ExactDiag.site_spinflip(3) == 3
 
 function test_1d_hubbard_hamiltonian(lattice)
-    apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=e/1000)
+    apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=MathConstants.e/1000)
     hs = HubbardHilbertSpace(lattice)
     seed_state!(hs, div(length(lattice), 2), div(length(lattice), 2))
     mat = operator_matrix(hs, apply_hamiltonian)
@@ -39,14 +39,14 @@ function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} wh
     full_ham = operator_matrix(hs, apply_hamiltonian)
 
     processed_length = 0
-    symmbounds = (repeat([2], inner=[length(symmetries)])...)
+    symmbounds = (repeat([2], inner=[length(symmetries)])...,)
     for k_idx in eachmomentumindex(hs.lattice)
         for symm_idx in 1:2*length(symmetries)
             symm = [ind2sub(symmbounds, symm_idx)...] .- 1
             diagsect = DiagonalizationSector(rst, 1, k_idx, symm)
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
-            reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
             @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact.values, fact.vectors
@@ -123,7 +123,7 @@ let
         for spinflip_idx in 0:1
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue
-            reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
             @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact.values, fact.vectors
@@ -254,7 +254,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
         slater_energies = [energy for (energy, ku, kd) in band_fillings[total_momenta[k_idx]]]
         diagsect = DiagonalizationSector(rst, 1, k_idx)
         length(diagsect) != 0 || continue
-        reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+        reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
         @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
         fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
         evals, evecs = fact.values, fact.vectors
@@ -315,7 +315,7 @@ function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # d
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
-            reduced_ham = full(construct_reduced_hamiltonian(diagsect))
+            reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
             @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact.values, fact.vectors

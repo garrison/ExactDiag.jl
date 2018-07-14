@@ -31,7 +31,7 @@ let
 
     function calculate_momentum_sector(func, sector_index, momentum_index)
         diagsect = DiagonalizationSector(rst, sector_index, momentum_index)
-        reduced_hamiltonian = full(construct_reduced_hamiltonian(diagsect))
+        reduced_hamiltonian = Matrix(construct_reduced_hamiltonian(diagsect))
         fact = eigen(Hermitian((reduced_hamiltonian + reduced_hamiltonian') / 2))
         func(construct_reduced_indexer(diagsect), fact.values, fact.vectors)
         nothing
@@ -93,7 +93,7 @@ let
         # Test that doing exact diagonalization without regard to momentum sectors
         # would give the same results
         full_ham = operator_matrix(hs, apply_hamiltonian)
-        fact = eigen(Hermitian(full(full_ham)))
+        fact = eigen(Hermitian(Matrix(full_ham)))
         ψ_e = Ac_mul_B(fact.vectors, initial_state)
         ψ_t = fact.vectors * (exp.(-im .* fact.values .* transpose(time_steps)) .* ψ_e)
         @test ψ_t ≈ output_states

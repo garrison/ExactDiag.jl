@@ -21,6 +21,11 @@ abstract type HilbertSpace{StateType} end
 
 statetype(::HilbertSpace{StateType}) where {StateType} = StateType
 
+@static if VERSION >= v"0.7-"
+    using SparseArrays
+    using LinearAlgebra
+end
+
 # FIXME: work with BitVector
 
 """

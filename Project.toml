@@ -1,0 +1,15 @@
+name = "ExactDiag"
+uuid = "975f4ea6-6862-11e8-1194-5ff2eb72489b"
+version = "0.0.0"
+
+[deps]
+Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+UniqueVectors = "2fbcfb34-fd0c-5fbb-b5d7-e826d8f5b0a9"
+Bravais = "a63ae028-67b0-11e8-27d3-0b265754b156"
+SortingAlgorithms = "a2af1166-a08f-5f64-846c-94a0d3cef48c"
+JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"

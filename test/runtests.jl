@@ -9,6 +9,12 @@ using Combinatorics
 using Compat
 using Compat.Test
 
+@static if VERSION >= v"0.7-"
+    using SparseArrays
+    using LinearAlgebra
+    using Arpack
+end
+
 debug = false
 
 @inferred ExactDiag.exp_2πiη(0//1)

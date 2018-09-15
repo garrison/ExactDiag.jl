@@ -55,13 +55,8 @@ end
 
 # These functions should behave as usual for all other data types (e.g. normal
 # vectors/matrices)
-@static if VERSION >= v"0.7-"
-    my_Ac_mul_B(a, b) = a' * b
-    my_A_mul_B!(c, a, b) = mul!(c, a, b)
-else
-    my_Ac_mul_B(a, b) = Ac_mul_B(a, b)
-    my_A_mul_B!(c, a, b) = A_mul_B!(c, a, b)
-end
+my_Ac_mul_B(a, b) = a' * b
+my_A_mul_B!(c, a, b) = mul!(c, a, b)
 
 function calculate_energy_basis_size(state_table::RepresentativeStateTable, k_indices)
     if k_indices == eachmomentumindex(state_table.hs.lattice)

@@ -9,14 +9,9 @@ using Combinatorics
 using Compat
 using Compat.Test
 
-@static if VERSION >= v"0.7-"
-    using SparseArrays
-    using LinearAlgebra
-    using Arpack
-else
-    eigen = eigfact
-    ℯ = e # FIXME: when support for 0.6 is dropped, use MathConstants.e instead in hubbard.jl
-end
+using SparseArrays
+using LinearAlgebra
+using Arpack
 
 debug = false
 

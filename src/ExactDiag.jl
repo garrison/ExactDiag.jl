@@ -1,6 +1,8 @@
-VERSION < v"0.7.0-beta2.199" && __precompile__()
-
 module ExactDiag
+
+using SparseArrays
+using LinearAlgebra
+using Nullables
 
 using Compat
 using Reexport
@@ -20,14 +22,6 @@ import Bravais: translateη
 abstract type HilbertSpace{StateType} end
 
 statetype(::HilbertSpace{StateType}) where {StateType} = StateType
-
-@static if VERSION >= v"0.7-"
-    using SparseArrays
-    using LinearAlgebra
-    using Nullables
-else
-    eigen = eigfact
-end
 
 # FIXME: work with BitVector
 

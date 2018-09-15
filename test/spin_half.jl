@@ -150,11 +150,7 @@ obc_SpSm = [0.88092702265123 -0.262661506108124 0.14116753056054 -0.106499804009
 test_disordered_hamiltonian(ChainLattice([12], diagm(0 => [0])), obc_energy, obc_Sz, obc_SzSz, obc_SpSm)
 
 function my_1d_translate(state::SVector{L,Int})::SVector{L,Int} where {L}
-    @static if VERSION >= v"0.7-"
-        pushfirst(pop(state), state[end])
-    else
-        unshift(pop(state), state[end])
-    end
+    pushfirst(pop(state), state[end])
 end
 
 # XXX: This is now only used in the hubbard tests

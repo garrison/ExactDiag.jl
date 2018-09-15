@@ -27,7 +27,7 @@ let
     initial_state = zeros(ComplexF64, length(rst.hs.indexer))
     initial_state[1] = 1 / sqrt(2)
     initial_state[2] = im / sqrt(2)
-    time_steps = 10 .^ Compat.range(-1.5, stop=4, length=41)
+    time_steps = 10 .^ range(-1.5, stop=4, length=41)
     push!(time_steps, 0)
 
     function calculate_momentum_sector(func, sector_index, momentum_index)

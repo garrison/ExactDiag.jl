@@ -4,7 +4,6 @@ using SparseArrays
 using LinearAlgebra
 using Nullables
 
-using Compat
 using Reexport
 
 @reexport using Bravais
@@ -108,10 +107,10 @@ expectval(hs::HilbertSpace, vec::AbstractVector, apply_operator, args...) = dot(
 struct CheckEigenstateError <: Exception end
 
 eigenstate_badness(hamiltonian::AbstractMatrix{<:Number}, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
-    Compat.norm(hamiltonian * eigenvector - eigenvalue * eigenvector)
+    norm(hamiltonian * eigenvector - eigenvalue * eigenvector)
 
 eigenstate_badness(hs::HilbertSpace, apply_hamiltonian, eigenvalue::Real, eigenvector::AbstractVector{<:Number}) =
-    Compat.norm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
+    norm(operator_apply(hs, eigenvector, apply_hamiltonian) - eigenvalue * eigenvector)
 
 check_eigenstate(args...; tolerance::Float64=1e-5) =
     abs(eigenstate_badness(args...)) < tolerance || throw(CheckEigenstateError())

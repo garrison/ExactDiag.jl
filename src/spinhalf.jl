@@ -294,7 +294,7 @@ function Base.getindex(indexer::SpinHalfFullIndexer{L}, i::Integer) where {L}
     SVector{L,Int}([Int((i & (1 << (L - j))) == 0) for j in 1:L])
 end
 
-EqualTo = Compat.Fix2{typeof(isequal)}
+EqualTo = Base.Fix2{typeof(isequal)}
 
 function Base.findfirst(p::EqualTo{<:StaticVector{L,Int}}, indexer::SpinHalfFullIndexer{L}) where {L}
     s = 1

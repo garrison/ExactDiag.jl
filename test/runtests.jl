@@ -6,8 +6,7 @@ using ExactDiag
 using JLD
 using Combinatorics
 
-using Compat
-using Compat.Test
+using Test
 
 using SparseArrays
 using LinearAlgebra

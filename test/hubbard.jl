@@ -47,7 +47,7 @@ function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} wh
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
             reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
-            @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+            @test norm(reduced_ham - reduced_ham') < 1e-5
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact.values, fact.vectors
             for i in 1:length(evals)
@@ -124,7 +124,7 @@ let
             diagsect = DiagonalizationSector(rst, 1, k_idx, [spinflip_idx])
             length(diagsect) != 0 || continue
             reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
-            @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+            @test norm(reduced_ham - reduced_ham') < 1e-5
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact.values, fact.vectors
             eval = evals[1]
@@ -255,7 +255,7 @@ function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int
         diagsect = DiagonalizationSector(rst, 1, k_idx)
         length(diagsect) != 0 || continue
         reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
-        @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+        @test norm(reduced_ham - reduced_ham') < 1e-5
         fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
         evals, evecs = fact.values, fact.vectors
 
@@ -316,7 +316,7 @@ function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # d
             length(diagsect) != 0 || continue
             processed_length += length(diagsect)
             reduced_ham = Matrix(construct_reduced_hamiltonian(diagsect))
-            @test Compat.norm(reduced_ham - reduced_ham') < 1e-5
+            @test norm(reduced_ham - reduced_ham') < 1e-5
             fact = eigen(Hermitian((reduced_ham + reduced_ham') / 2))
             evals, evecs = fact.values, fact.vectors
             for i in 1:length(evals)

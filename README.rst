@@ -18,7 +18,7 @@ Available model systems
 Spin 1/2
 --------
 
-Spin up = 1, spin down = 0
+Spin up = 0, spin down = 1
 
 Hard-core (?) bosons
 --------------------

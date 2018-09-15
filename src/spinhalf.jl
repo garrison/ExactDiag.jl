@@ -16,7 +16,7 @@ SpinHalfHilbertSpace(lattice::AbstractSiteNetwork) = SpinHalfHilbertSpace(lattic
 
 statetype(::SpinHalfHilbertSpace{L}) where {L} = SpinHalfStateType{L}
 
-get_σz(::SpinHalfHilbertSpace, site_state::Integer) = (site_state << 1) - 1
+get_σz(::SpinHalfHilbertSpace, site_state::Integer) = 1 - (site_state << 1)
 get_charge(::SpinHalfHilbertSpace, site_state::Integer) = 0
 
 get_total_charge(::SpinHalfHilbertSpace, state) = 0 # because we cannot pick up any phase with twisted boundary conditions
@@ -29,8 +29,8 @@ function apply_σ(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, σ::Abst
     state = hs.indexer[j]
     other = myflipbit(state, x1)
     i = findfirst!(isequal(other), hs.indexer)
-    f(j, σ[2-state[x1],2-state[x1]])
-    f(i, σ[2-other[x1],2-state[x1]])
+    f(j, σ[1+state[x1],1+state[x1]])
+    f(i, σ[1+other[x1],1+state[x1]])
     nothing
 end
 
@@ -90,10 +90,10 @@ apply_σpσm_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::In
 
 function apply_σpσm(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     state = hs.indexer[j]
-    if state[x2] == 1
+    if state[x2] == 0
         if x1 == x2
             f(j, 1)
-        elseif state[x1] == 0
+        elseif state[x1] == 1
             other = myflipbits(state, x1, x2)
             i = findfirst!(isequal(other), hs.indexer)
             f(i, 1)
@@ -104,10 +104,10 @@ end
 
 function apply_σmσp(f, hs::SpinHalfHilbertSpace, j::Integer, x1::Integer, x2::Integer, η::Rational{Int}=0//1)
     state = hs.indexer[j]
-    if state[x2] == 0
+    if state[x2] == 1
         if x1 == x2
             f(j, 1)
-        elseif state[x1] == 1
+        elseif state[x1] == 0
             other = myflipbits(state, x1, x2)
             i = findfirst!(isequal(other), hs.indexer)
             f(i, 1)
@@ -246,9 +246,9 @@ function seed_state!(hs::SpinHalfHilbertSpace{L}, N_up::Integer) where {L}
     if !(0 <= N_up <= length(hs.lattice))
         throw(ArgumentError("Invalid N_up provided for size $(length(hs.lattice)) lattice: $(N_up)"))
     end
-    state = zeros(MVector{L,Int})
+    state = ones(MVector{L,Int})
     for i in 1:N_up
-        state[i] = 1
+        state[i] = 0
     end
     findfirst!(isequal(state), hs.indexer)
     return hs
@@ -291,7 +291,7 @@ function Base.getindex(indexer::SpinHalfFullIndexer{L}, i::Integer) where {L}
     checkbounds(indexer, i)
     i -= 1
     # FIXME: would be nice if we could use @SVector macro!!
-    SVector{L,Int}([Int((i & (1 << (L - j))) == 0) for j in 1:L])
+    SVector{L,Int}([Int((i & (1 << (L - j))) != 0) for j in 1:L])
 end
 
 EqualTo = Base.Fix2{typeof(isequal)}
@@ -301,7 +301,7 @@ function Base.findfirst(p::EqualTo{<:StaticVector{L,Int}}, indexer::SpinHalfFull
     for i in 0:L-1
         v = p.x[L - i]
         @assert (v | 1) == 1
-        s += (1 - v) << i
+        s += v << i
     end
     s
 end

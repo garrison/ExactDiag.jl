@@ -2,7 +2,7 @@
 # symmetry at k=0 and k=π
 let L = 10
     hs = SpinHalfHilbertSpace(ChainLattice([L]))
-    seed_state!(hs, 0)
+    seed_state!(hs, N_up=0)
     apply_hamiltonian = spin_half_hamiltonian(J1_z=1, h_x=0.45, h_z=0.87)
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [reflection_symmetry])
 

@@ -242,7 +242,7 @@ function spin_half_hamiltonian(;
     end
 end
 
-function seed_state!(hs::SpinHalfHilbertSpace{L}, N_up::Integer) where {L}
+function seed_state!(hs::SpinHalfHilbertSpace{L}; N_up::Int) where {L}
     if !(0 <= N_up <= length(hs.lattice))
         throw(ArgumentError("Invalid N_up provided for size $(length(hs.lattice)) lattice: $(N_up)"))
     end
@@ -253,6 +253,9 @@ function seed_state!(hs::SpinHalfHilbertSpace{L}, N_up::Integer) where {L}
     findfirst!(isequal(state), hs.indexer)
     return hs
 end
+
+# Deprecated 2018-09-15
+@deprecate seed_state!(hs::SpinHalfHilbertSpace, N_up::Integer) seed_state!(hs, N_up=N_up)
 
 # conserves_sz
 

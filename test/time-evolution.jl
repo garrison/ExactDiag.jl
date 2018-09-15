@@ -21,7 +21,7 @@ let
     lattice = ChainLattice([8])
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
     hs = SpinHalfHilbertSpace(lattice)
-    seed_state!(hs, div(length(lattice), 2))
+    seed_state!(hs, N_up=div(length(lattice), 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
 
     initial_state = zeros(ComplexF64, length(rst.hs.indexer))

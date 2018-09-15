@@ -6,7 +6,7 @@ let
     lattice = ChainLattice([L])
     apply_hamiltonian = spin_half_hamiltonian(J1=1)
     hs = SpinHalfHilbertSpace(lattice)
-    seed_state!(hs, div(L, 2))
+    seed_state!(hs, N_up=div(L, 2))
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
     @test rst.state_info_v[findfirst(isequal([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index == rst.state_info_v[findfirst(isequal([0,1,1,1,0,1,0,0]), hs.indexer)].representative_index
     @test rst.state_info_v[findfirst(isequal([1,1,1,0,1,0,0,0]), hs.indexer)].representative_index != rst.state_info_v[findfirst(isequal([0,1,1,1,0,0,1,0]), hs.indexer)].representative_index

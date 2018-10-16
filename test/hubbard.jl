@@ -14,7 +14,7 @@
 function test_1d_hubbard_hamiltonian(lattice)
     apply_hamiltonian = hubbard_hamiltonian(t=1, U=3, ϵ_total_spin=pi/1000, ϵ_total_pseudospin=MathConstants.e/1000)
     hs = HubbardHilbertSpace(lattice)
-    seed_state!(hs, div(length(lattice), 2), div(length(lattice), 2))
+    seed_state!(hs, N_up=div(length(lattice), 2), N_dn=div(length(lattice), 2))
     mat = operator_matrix(hs, apply_hamiltonian)
     @test ishermitian(mat)
     zzz = HilbertSpaceTranslationCache(hs, 1)
@@ -32,7 +32,7 @@ test_1d_hubbard_hamiltonian(ChainLattice([8]))
 function test_1d_hubbard_symmetries(lattice, symmetries::Vector{Tuple{F,Int}} where {F<:Function})
     L = length(lattice)
     hs = HubbardHilbertSpace(lattice)
-    seed_state!(hs, div(L, 2), div(L, 2))
+    seed_state!(hs, N_up=div(L, 2), N_dn=div(L, 2))
     apply_hamiltonian = hubbard_hamiltonian(t=1, U=2)
     rst = RepresentativeStateTable(hs, apply_hamiltonian, symmetries)
 
@@ -112,7 +112,7 @@ let
     lattice = ChainLattice([L])
     apply_hamiltonian = hubbard_hamiltonian(t=1)
     hs = HubbardHilbertSpace(lattice)
-    seed_state!(hs, div(L, 2), div(L, 2))
+    seed_state!(hs, N_up=div(L, 2), N_dn=div(L, 2))
 
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
 
@@ -195,7 +195,7 @@ end
 function test_slater_determinants(lattice::AbstractLattice, N_up::Int, N_dn::Int, ϵ)
     apply_hamiltonian = hubbard_hamiltonian(t=1)
     hs = HubbardHilbertSpace(lattice)
-    seed_state!(hs, N_up, N_dn)
+    seed_state!(hs, N_up=N_up, N_dn=N_dn)
 
     rst = RepresentativeStateTable(hs, apply_hamiltonian)
 
@@ -303,7 +303,7 @@ end
 
 function test_hubbard_abelian_spinflip(lattice, N_updn; t=1, U=2, kwargs...) # does not assume half filling
     hs = HubbardHilbertSpace(lattice)
-    seed_state!(hs, N_updn, N_updn)
+    seed_state!(hs, N_up=N_updn, N_dn=N_updn)
     apply_hamiltonian = hubbard_hamiltonian(t=t, U=U; kwargs...)
     rst = RepresentativeStateTable(hs, apply_hamiltonian, [spinflip_symmetry])
 

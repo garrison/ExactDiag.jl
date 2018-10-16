@@ -308,7 +308,7 @@ function hubbard_hamiltonian(p::HubbardParameters)
     end
 end
 
-function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
+function seed_state!(hs::HubbardHilbertSpace; N_up::Int, N_dn::Int)
     if !(0 <= N_up <= length(hs.lattice))
         throw(ArgumentError("Invalid N_up provided for size $(length(hs.lattice)) lattice: $(N_up)"))
     end
@@ -325,6 +325,9 @@ function seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer)
     findfirst!(isequal(state), hs.indexer)
     return hs
 end
+
+# Deprecated 2018-10-16
+@deprecate seed_state!(hs::HubbardHilbertSpace, N_up::Integer, N_dn::Integer) seed_state!(hs, N_up=N_up, N_dn=N_dn)
 
 function permutation_parity(perm::Vector{Int})
     parity = 0

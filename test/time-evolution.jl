@@ -1,5 +1,4 @@
 mktempdir() do tmpdir
-    VERSION >= v"0.7-" && return # XXX TEST TEMPORARILY DISABLED UNTIL JLD IS FIXED
     # Test dataset multiplication
     n = 30
     m = 10
@@ -58,7 +57,6 @@ let
 
         # Test JLD dataset time evolution
         mktempdir() do tmpdir
-            VERSION >= v"0.7-" && return # XXX TEST TEMPORARILY DISABLED UNTIL JLD IS FIXED
             fn = joinpath(tmpdir, "exactdiag-evolve.jld")
             jldopen(fn, "w") do file
                 # Save each momentum sector
